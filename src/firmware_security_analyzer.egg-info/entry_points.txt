@@ -1,2 +1,0 @@
-[console_scripts]
-fsa = fsa.cli:main
