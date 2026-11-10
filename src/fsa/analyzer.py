@@ -36,7 +36,7 @@ def scan_file(
     versions = find_kernel_versions(strings)
     report = {
         "tool": "Firmware Security Analyzer",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "input": {
             "name": source.name,
             "size_bytes": len(data),

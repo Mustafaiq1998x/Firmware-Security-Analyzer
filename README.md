@@ -10,7 +10,7 @@ explicitly authorized to assess.
 > affects a device. FSA does not execute firmware, attempt logins, exploit
 > vulnerabilities, or modify input files.
 
-## Features in v0.1
+## Features in v0.1.2
 
 - SHA-256 and file metadata.
 - Identification of common embedded signatures (SquashFS, CramFS, JFFS2,
@@ -22,7 +22,8 @@ explicitly authorized to assess.
 - Heuristic Linux kernel version extraction.
 - Offline CVE-feed matching against an explicitly supplied JSON file.
 - JSON and self-contained HTML reports.
-- CLI on Windows, Linux, and macOS; optional FastAPI read-only dashboard/API.
+- CLI on Windows, Linux, and macOS; optional FastAPI browser dashboard/API.
+- Responsive bilingual Arabic/English browser dashboard with RTL/LTR switching, drag-and-drop upload, scan summary, entropy chart, signature offsets, heuristic evidence, kernel versions, CVE-feed matches, and JSON export.
 
 ## Safety and scope
 
@@ -66,9 +67,12 @@ fsa serve [--host 127.0.0.1] [--port 8000]
 ```
 
 The optional web service exposes:
-- `GET /health`
-- `POST /scan` with a multipart firmware file; returns a JSON report.
-- `GET /` minimal local interface.
+- `GET /` responsive Arabic/English dashboard for local browser-based scanning (English LTR by default, Arabic RTL via the language switch).
+- `GET /health` service health and version.
+- `POST /scan` multipart firmware upload; returns a JSON report.
+- `GET /docs` interactive API documentation.
+
+Start the dashboard with `fsa serve` and open `http://127.0.0.1:8000`. The web extra includes `python-multipart`, required for secure multipart upload handling. The dashboard runs locally and does not require a third-party frontend service.
 
 Keep the service bound to `127.0.0.1` unless you have a deliberate, secured
 deployment plan. The API has no authentication in this initial release. API uploads are limited to 128 MiB; CLI scans default to a 512 MiB limit, configurable with `--max-file-size-mib`. Reports cannot overwrite the input image through the CLI.
@@ -125,7 +129,7 @@ docs/             methodology, validation, roadmap
 
 ## Development
 
-See [CHANGELOG.md](CHANGELOG.md) for stabilization history and [docs/PHASE1_AUDIT.md](docs/PHASE1_AUDIT.md) for the independent v0.1.0 audit.
+See [CHANGELOG.md](CHANGELOG.md) for release history, [docs/GUI.md](docs/GUI.md) for dashboard usage, and [docs/PHASE1_AUDIT.md](docs/PHASE1_AUDIT.md) for the v0.1.0 stabilization audit.
 
 ```bash
 python -m pip install -e ".[dev,web]"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "firmware-security-analyzer"
-version = "0.1.0"
+version = "0.1.2"
 description = "Defensive static analysis toolkit for firmware images"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ authors = [{name = "FSA contributors"}]
 dependencies = []
 
 [project.optional-dependencies]
-web = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.27", "python-multipart>=0.0.9"]
 dev = ["pytest>=8.0", "ruff>=0.4", "httpx>=0.27"]
 yara = ["yara-python>=4.3"]
 
@@ -30,3 +30,6 @@ pythonpath = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.setuptools.package-data]
+fsa = ["templates/*.html"]

@@ -80,3 +80,12 @@ A second review found two additional edge cases in the stabilized archive: the e
 - No real DVR firmware was attached in this turn, so no real-world regression scan was performed.
 
 **Exit decision:** Phase 1 is locally stabilized but not fully closed. Do not start Phase 2 until GitHub Actions confirms the matrix and a clean dependency installation is demonstrated.
+
+## v0.1.1 CI finding and remediation
+
+The first GitHub Actions run for commit `79619bdf2b506023d69359a02b8583c05f19d332` installed the project successfully on Ubuntu/Python 3.12 but failed test collection because FastAPI's multipart route requires `python-multipart`, which was absent from the `web` optional dependencies. The other matrix jobs were cancelled by the default fail-fast behavior; they did not pass or fail independently. Version 0.1.1 adds `python-multipart` to the web extra, packages the browser dashboard asset, adds web UI assertions, and disables matrix fail-fast so all environments report their own results. Local verification on Python 3.13/Linux: 26 tests passed, compileall passed, and a wheel built successfully with the dashboard HTML included. The GitHub matrix still must be rerun before Phase 1 can be declared closed.
+
+
+## v0.1.2 bilingual dashboard update
+
+The browser dashboard now supports English (default LTR) and Arabic (RTL) through a header language switch. Interface labels and result summaries are translated while firmware-derived evidence and identifiers remain unchanged. Local regression coverage remains 26 tests; CI matrix verification is still required before closing Phase 1.
