@@ -1,0 +1,36 @@
+from fsa.analyzer import scan_file
+
+def test_scan_file(tmp_path):
+    sample = tmp_path / "sample.bin"
+    sample.write_bytes(b"\x7fELF" + b"\x00Linux version 4.9.138\x00password=sample123")
+    report = scan_file(sample)
+    assert report["input"]["size_bytes"] > 0
+    assert report["analysis"]["kernel_versions"] == ["4.9.138"]
+    assert report["analysis"]["signatures"][0]["name"] == "ELF"
+
+
+def test_scan_rejects_oversized_input(tmp_path):
+    import pytest
+    sample = tmp_path / "large.bin"
+    sample.write_bytes(b"12345")
+    with pytest.raises(ValueError, match="size limit"):
+        scan_file(sample, max_file_size=4)
+
+
+def test_cli_refuses_to_overwrite_input(tmp_path):
+    import pytest
+    from fsa.cli import _ensure_safe_report_paths
+    image = tmp_path / "firmware.bin"
+    image.write_bytes(b"firmware")
+    with pytest.raises(SystemExit, match="overwrite"):
+        _ensure_safe_report_paths(str(image), str(image), None)
+
+
+def test_cli_refuses_same_json_and_html_path(tmp_path):
+    import pytest
+    from fsa.cli import _ensure_safe_report_paths
+    image = tmp_path / "firmware.bin"
+    image.write_bytes(b"firmware")
+    report = tmp_path / "report.out"
+    with pytest.raises(SystemExit, match="different"):
+        _ensure_safe_report_paths(str(image), str(report), str(report))
