@@ -44,7 +44,23 @@
         "message": "Heuristic indicator only; manually validate context and whether the component is active."
       }
     ],
-    "cve_matches": []
+    "cve_matches": [],
+    "firmware_profile": {
+      "outer_format": "unknown",
+      "identity": {
+        "os_hint": "Linux",
+        "evidence": {
+          "source": "kernel version string"
+        }
+      },
+      "components": [],
+      "encryption": {
+        "status": "undetermined",
+        "algorithm": null,
+        "evidence": "No recognized encryption header. Compressed or high-entropy bytes alone are inconclusive."
+      }
+    },
+    "cve_assessment": "not assessed: no feed"
   },
   "limitations": [
     "Static triage only; findings require manual validation.",

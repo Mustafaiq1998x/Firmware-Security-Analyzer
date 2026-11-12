@@ -47,6 +47,24 @@ def write_html(report: dict, path: str | Path) -> None:
         [(c.get("cve", ""), c.get("component", ""), c.get("detected_version", ""), c.get("status", ""))
          for c in analysis.get("cve_matches", [])], "No advisory matches recorded.")
     limitations = "".join(f"<li>{_text(s)}</li>" for s in report.get("limitations", []))
+    profile = analysis.get("firmware_profile", {})
+    identity = profile.get("identity", {})
+    encryption = profile.get("encryption", {})
+    inventory = report.get("archive_inspection", {})
+    detail_rows = [
+        ("Outer format", profile.get("outer_format", "Unknown")),
+        ("Board", identity.get("board") or "Unknown"),
+        ("Supported devices", ", ".join(identity.get("supported_devices", [])) or "Unknown"),
+        ("System", " ".join(filter(None, [identity.get("os_family"), identity.get("distribution"), identity.get("release")])) or "Unknown"),
+        ("Encryption", encryption.get("status", "Undetermined")),
+        ("Cipher and mode", " ".join(filter(None, [encryption.get("algorithm"), encryption.get("mode")])) or "Unknown"),
+        ("Encryption evidence", encryption.get("evidence", "Unavailable")),
+        ("CVE assessment", analysis.get("cve_assessment", "Unavailable")),
+    ]
+    if inventory.get("status") == "completed":
+        scope = "Exported components" if inventory["format"] == "components" else "Extracted regular members"
+        detail_rows.append((scope, inventory["summary"]["files"]))
+    profile_table = _table(["Field", "Value"], detail_rows, "")
     raw = _text(json.dumps(report, indent=2, ensure_ascii=False))
     style = (Path(__file__).with_name("assets") / "report.css").read_text(encoding="utf-8")
     document = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -58,6 +76,7 @@ def write_html(report: dict, path: str | Path) -> None:
 <dt>Kernel strings</dt><dd>{_text(', '.join(analysis.get('kernel_versions', [])) or 'None detected')}</dd></dl>
 <nav><a href="#structure">Component signatures ({len(signatures)})</a>
 <a href="#evidence">Indicator rules ({len(findings)})</a><a href="#advisories">Advisories</a></nav>
+<section><h2>Firmware identification</h2>{profile_table}</section>
 <section id="structure"><h2>Component signatures</h2>{components}</section>
 <section id="evidence"><h2>Evidence for review</h2>{''.join(evidence) or '<p>No heuristic indicators recorded.</p>'}</section>
 <section id="advisories"><h2>Advisory matches</h2>{advisories}</section>

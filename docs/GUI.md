@@ -4,7 +4,7 @@ Install and start from the project directory:
 
 ```sh
 python -m pip install ".[web]"
-fsa-gui
+fsa-web
 ```
 
 The launcher opens your default browser on an available loopback port. Keep the launcher running while reviewing the report. Ctrl+C stops the server. For a fixed port use `fsa serve`.
