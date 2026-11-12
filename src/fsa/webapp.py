@@ -1,11 +1,14 @@
 """Optional local-only API and browser dashboard."""
 from pathlib import Path
 import tempfile
+from threading import BoundedSemaphore
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
-from .analyzer import scan_file
+
+from .scan_worker import inspect_upload
 
 app = FastAPI(
     title="Firmware Security Analyzer",
@@ -13,8 +16,12 @@ app = FastAPI(
     description="Local, read-only static firmware triage API. Findings require manual validation.",
 )
 API_MAX_UPLOAD_BYTES = 128 * 1024 * 1024
+WORKER_SLOT = BoundedSemaphore(1)
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 DASHBOARD_PATH = Path(__file__).with_name("templates") / "dashboard.html"
+
+
+app.mount("/assets", StaticFiles(directory=Path(__file__).with_name("assets")), name="assets")
 
 
 @app.middleware("http")
@@ -40,33 +47,33 @@ def health():
 
 
 @app.post("/scan")
-async def scan(upload: UploadFile = File(...)):
-    suffix = Path(upload.filename or "firmware.bin").suffix
-    if len(suffix) > 16 or (suffix and not suffix[1:].isalnum()):
-        suffix = ".bin"
-
-    temp_path = None
+async def scan(request: Request, upload: UploadFile = File(...), inspect_archive: bool = Form(False)):
+    display_name = (upload.filename or "").replace("\\", "/").split("/")[-1] or "firmware.bin"
+    if not WORKER_SLOT.acquire(blocking=False):
+        await upload.close()
+        raise HTTPException(429, "Another analysis is running")
     total = 0
     try:
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as handle:
-            temp_path = Path(handle.name)
-            while True:
-                chunk = await upload.read(UPLOAD_CHUNK_BYTES)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > API_MAX_UPLOAD_BYTES:
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"File exceeds {API_MAX_UPLOAD_BYTES} byte limit",
-                    )
-                handle.write(chunk)
-        return scan_file(temp_path, max_file_size=API_MAX_UPLOAD_BYTES)
-    except HTTPException:
-        raise
+        with tempfile.TemporaryDirectory(prefix="fsa-") as temp:
+            workspace = Path(temp)
+            source = workspace / "input.bin"
+            with source.open("xb") as handle:
+                while chunk := await upload.read(UPLOAD_CHUNK_BYTES):
+                    total += len(chunk)
+                    if total > API_MAX_UPLOAD_BYTES:
+                        raise HTTPException(413, f"File exceeds {API_MAX_UPLOAD_BYTES} byte limit")
+                    handle.write(chunk)
+            report = await inspect_upload(source, workspace, API_MAX_UPLOAD_BYTES, inspect_archive,
+                                          request.is_disconnected)
+            report["input"]["name"] = display_name
+            archive = report.get("archive_inspection", {}).get("archive")
+            if archive:
+                archive["name"] = display_name
+            return report
+    except TimeoutError as exc:
+        raise HTTPException(408, str(exc)) from exc
     except (OSError, ValueError) as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(400, str(exc)) from exc
     finally:
-        if temp_path is not None:
-            temp_path.unlink(missing_ok=True)
+        WORKER_SLOT.release()
         await upload.close()
