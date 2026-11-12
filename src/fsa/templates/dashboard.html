@@ -1,55 +1,120 @@
 <!doctype html>
 <html lang="en" dir="ltr">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1020">
-<title>FSA — محلّل أمن البرمجيات الثابتة</title>
-<style>
-:root{color-scheme:dark;--bg:#080d19;--panel:#101a2b;--line:#263751;--text:#edf4ff;--muted:#91a4bf;--cyan:#4dd7d0;--blue:#7aa9ff;--amber:#f6bd60;--red:#ff7777}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -20%,#19345a 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}a{color:var(--cyan);text-decoration:none}.shell{max-width:1320px;margin:auto;padding:26px 22px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:26px}.brand{display:flex;align-items:center;gap:13px}.mark{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#38c9c1,#477de5);display:grid;place-items:center;color:#071323;font-weight:900;font-size:21px}.brand h1{font-size:20px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}.top-actions{display:flex;gap:9px;align-items:center}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 12px;color:var(--muted);font-size:12px}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-bottom:18px}.panel{background:linear-gradient(160deg,#132138ed,#0d1728f2);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 16px 50px #0003}.eyebrow{color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:.04em}.hero h2{font-size:clamp(25px,4vw,38px);line-height:1.2;margin:10px 0}.hero p{color:var(--muted);max-width:700px;margin:0}.drop{margin-top:22px;border:1px dashed #45617f;background:#0b1526;border-radius:16px;padding:22px;text-align:center;transition:.2s}.drop.drag{border-color:var(--cyan);background:#12313a}.drop strong{display:block;font-size:16px}.drop small{display:block;color:var(--muted);margin:5px 0 14px}.file-name{color:var(--cyan);font-size:13px;min-height:22px;overflow-wrap:anywhere}.btn{border:0;border-radius:11px;padding:11px 17px;font:inherit;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#4dd7d0,#65a5ff);color:#071323}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.secondary{background:#1a2b44;color:var(--text);border:1px solid var(--line)}.btnrow{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}.limits{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:11px}.limits span:before{content:"•";color:var(--cyan);margin-left:6px}.side h3{margin:0 0 13px;font-size:16px}.step{display:flex;gap:12px;margin:12px 0}.num{width:28px;height:28px;border-radius:9px;background:#20344f;color:var(--cyan);display:grid;place-items:center;font-weight:800;flex:none}.step b{display:block;font-size:13px}.step small{color:var(--muted)}.notice{margin-top:17px;border-right:3px solid var(--amber);background:#392d1a55;padding:11px 13px;border-radius:8px;color:#e8d3a9;font-size:12px}.status{display:none;margin:18px 0;padding:14px 17px;border:1px solid var(--line);border-radius:13px;background:var(--panel);color:var(--muted)}.status.show{display:block}.status.error{border-color:#804747;color:#ffb4b4}.results{display:none}.results.show{display:block}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 12px}.section-head h2{font-size:19px;margin:0}.muted{color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px}.metric small{color:var(--muted)}.metric strong{display:block;font-size:25px;margin-top:5px;direction:ltr;text-align:right;overflow-wrap:anywhere}.metric em{font-style:normal;font-size:11px;color:var(--muted)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.subpanel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}.subpanel h3{font-size:15px;margin:0 0 13px}.tag{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:5px 9px;margin:3px;background:#17263b;color:#c5d5e9;font-size:12px}.empty{color:var(--muted);font-size:13px;padding:12px 0}.finding{border:1px solid #57462c;background:#2c251a66;border-radius:12px;padding:13px;margin:9px 0}.finding h4{margin:0 0 5px;color:var(--amber);font-size:13px}.finding p{margin:0;color:#c5d1df;font-size:12px}.evidence{margin:8px 0 0;padding:8px;background:#090f1c;border-radius:8px;color:#a8bfd9;font:11px/1.5 ui-monospace,monospace;direction:ltr;text-align:left;overflow-wrap:anywhere}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th{color:var(--muted);font-weight:600}td code{color:var(--cyan)}canvas{width:100%;height:190px;display:block}.footer{border-top:1px solid var(--line);margin-top:35px;padding-top:17px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}@media(max-width:850px){.hero{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}@media(max-width:480px){.shell{padding:16px 12px 35px}.top{align-items:flex-start}.pill:not(button){display:none}.panel{padding:17px}.cards{gap:8px}.metric{padding:12px}.metric strong{font-size:20px}.section-head{align-items:flex-start;flex-direction:column}}
-</style></head><body><main class="shell">
-<header class="top"><div class="brand"><div class="mark">F</div><div><h1>Firmware Security Analyzer</h1><p>منصة التحليل الأمني الثابت للبرمجيات الثابتة</p></div></div><div class="top-actions"><button class="pill" id="languageToggle" type="button" aria-label="Switch language">English</button><span class="pill">الإصدار 0.1.2</span><a class="pill" href="/docs" target="_blank" rel="noopener">توثيق API ↗</a></div></header>
-<section class="hero"><div class="panel"><div class="eyebrow">DEFENSIVE FIRMWARE TRIAGE</div><h2>افحص ملف Firmware<br>وافهم مكوّناته ومؤشرات مخاطره</h2><p>تحليل ثابت محلي دون تشغيل البرنامج الثابت أو تعديله. استخرج البصمات المعروفة، إصدارات Linux، مؤشرات النصوص، وعينات entropy ضمن تقرير قابل للتصدير.</p><div class="drop" id="drop"><strong>اسحب ملف Firmware إلى هنا</strong><small>أو اختر ملفاً من جهازك — BIN · DAV · IMG · ZIP · وغيرها</small><input id="file" type="file" hidden><div class="btnrow"><button class="btn secondary" id="browse">اختيار ملف</button><button class="btn" id="scan" disabled>بدء التحليل</button></div><div class="file-name" id="filename"></div></div><div class="limits"><span>الحد الأقصى 128 MiB</span><span>لا يتم حفظ الملف</span><span>لا يتم تنفيذ Firmware</span></div></div>
-<aside class="panel side"><h3>كيف يعمل الفحص؟</h3><div class="step"><div class="num">1</div><div><b>قراءة آمنة</b><small>استقبال الملف مؤقتاً والتحقق من حجمه.</small></div></div><div class="step"><div class="num">2</div><div><b>تحليل البنية والمؤشرات</b><small>SHA-256، التواقيع، strings، entropy وإصدارات النواة.</small></div></div><div class="step"><div class="num">3</div><div><b>مراجعة النتائج</b><small>عرض الأدلة والتصدير بصيغة JSON.</small></div></div><div class="notice">تنبيه: النتائج الاستدلالية ليست إثباتاً لوجود ثغرة أو قابلية استغلال. يلزم التحقق اليدوي من سياق الجهاز وإصدارات المورّد.</div></aside></section>
-<div class="status" id="status" role="status" aria-live="polite"></div><section class="results" id="results"><div class="section-head"><div><div class="eyebrow">ANALYSIS SUMMARY</div><h2>ملخص نتائج الفحص</h2><div class="muted" id="reportname"></div></div><button class="btn secondary" id="download">تنزيل التقرير JSON</button></div><div class="cards" id="metrics"></div>
-<div class="grid2"><section class="subpanel"><h3>توزيع Entropy حسب موضع العينة</h3><canvas id="entropy" width="700" height="220"></canvas><div class="muted" style="font-size:11px">القيمة من 0 إلى 8 بت — القيم المرتفعة قد تشير إلى ضغط أو تشفير، لكنها لا تثبت ذلك.</div></section><section class="subpanel"><h3>تواقيع مكوّنات Firmware</h3><div id="signatures"></div></section></div>
-<div class="grid2"><section class="subpanel"><h3>المؤشرات الأمنية</h3><div id="findings"></div></section><section class="subpanel"><h3>إصدارات Linux المكتشفة</h3><div id="kernels"></div><h3 style="margin-top:20px">مطابقات CVE</h3><div id="cves"></div></section></div>
-<section class="subpanel" style="margin-top:14px"><h3>جدول التواقيع ومواقعها</h3><div class="tablewrap"><table><thead><tr><th>المكوّن</th><th>الإزاحة (Hex)</th><th>الإزاحة (Decimal)</th><th>Magic bytes</th><th>الوصف</th></tr></thead><tbody id="sigtable"></tbody></table></div></section><section class="subpanel" style="margin-top:14px"><h3>معلومات الملف والبصمة</h3><div class="tablewrap"><table><tbody id="metadata"></tbody></table></div></section></section>
-<footer class="footer"><span>FSA · أداة تحليل دفاعي ثابت ومفتوح المصدر</span><span>Local-first · لا تنفيذ · لا استغلال · لا تعديل للملف</span></footer></main>
-<script>
-const $=id=>document.getElementById(id);let selected=null,lastReport=null;function setStatus(msg,kind=''){const el=$('status');el.className='status show '+kind;el.textContent=msg}function prettyBytes(n){if(n<1024)return n+' B';let u=['KiB','MiB','GiB'],i=-1;do{n/=1024;i++}while(n>=1024&&i<u.length-1);return n.toFixed(2)+' '+u[i]}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function choose(f){selected=f;$('filename').textContent=f?`${f.name} · ${prettyBytes(f.size)}`:'';$('scan').disabled=!f;$('results').classList.remove('show');$('status').className='status'}$('browse').onclick=()=>$('file').click();$('file').onchange=e=>choose(e.target.files[0]||null);const drop=$('drop');['dragenter','dragover'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.remove('drag')}));drop.addEventListener('drop',e=>choose(e.dataTransfer.files[0]||null));
-$('scan').onclick=async()=>{if(!selected)return;if(selected.size>128*1024*1024){setStatus('حجم الملف يتجاوز الحد المسموح (128 MiB).','error');return}$('scan').disabled=true;$('browse').disabled=true;setStatus('جارٍ رفع الملف وتحليله…');try{const fd=new FormData();fd.append('upload',selected);const r=await fetch('/scan',{method:'POST',body:fd});const body=await r.json();if(!r.ok)throw new Error(body.detail||`HTTP ${r.status}`);lastReport=body;render(body);setStatus('اكتمل التحليل بنجاح. راجع المؤشرات ولا تعتبرها ثغرات مؤكدة.')}catch(e){setStatus('تعذّر إكمال الفحص: '+e.message,'error')}finally{$('scan').disabled=!selected;$('browse').disabled=false}};
-function metric(label,value,note){return `<div class="metric"><small>${label}</small><strong>${value}</strong><em>${note}</em></div>`}function render(r){const a=r.analysis||{},m=r.input||{};$('reportname').textContent=m.name||'';$('metrics').innerHTML=metric('حجم الملف',prettyBytes(m.size_bytes||0),'الحجم المقروء')+metric('التواقيع المكتشفة',(a.signatures||[]).length,'مواضع البصمات')+metric('المؤشرات الأمنية',(a.heuristic_findings||[]).length,'قواعد تحتاج مراجعة')+metric('إصدارات Kernel',(a.kernel_versions||[]).length,'إصدارات فريدة');$('signatures').innerHTML=(a.signatures||[]).length?(a.signatures||[]).slice(0,60).map(s=>`<span class="tag">${esc(s.name)} · 0x${Number(s.offset).toString(16)}</span>`).join(''):'<div class="empty">لم تُكتشف تواقيع معروفة ضمن قواعد الإصدار الحالي.</div>';$('findings').innerHTML=(a.heuristic_findings||[]).length?(a.heuristic_findings||[]).map(f=>`<article class="finding"><h4>${esc(f.rule)} · ثقة ${esc(f.confidence)}</h4><p>${esc(f.message)}</p>${(f.evidence||[]).map(x=>`<div class="evidence">${esc(x)}</div>`).join('')}</article>`).join(''):'<div class="empty">لا توجد مؤشرات استدلالية في النصوص المستخرجة. هذا لا يعني خلو الملف من المخاطر.</div>';$('kernels').innerHTML=(a.kernel_versions||[]).length?(a.kernel_versions||[]).map(v=>`<span class="tag" dir="ltr">Linux ${esc(v)}</span>`).join(''):'<div class="empty">لم يُعثر على إصدار Linux.</div>';$('cves').innerHTML=(a.cve_matches||[]).length?(a.cve_matches||[]).map(c=>`<div class="finding"><h4>${esc(c.cve)}</h4><p>${esc(c.summary)}<br>${esc(c.warning||'تحتاج مطابقة يدوية')}</p></div>`).join(''):'<div class="empty">لا توجد مطابقات CVE. لم يتم إجراء استعلام خارجي.</div>';$('sigtable').innerHTML=(a.signatures||[]).map(s=>`<tr><td>${esc(s.name)}</td><td dir="ltr">0x${Number(s.offset).toString(16)}</td><td dir="ltr">${Number(s.offset)}</td><td dir="ltr"><code>${esc(s.magic_hex)}</code></td><td>${esc(s.description)}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد نتائج</td></tr>';$('metadata').innerHTML=[['اسم الملف',m.name],['الحجم',prettyBytes(m.size_bytes||0)],['SHA-256',m.sha256],['عدد النصوص المطبوعة',a.printable_strings_count],['حدود التحليل',(r.limitations||[]).join(' · ')]].map(([k,v])=>`<tr><th>${esc(k)}</th><td dir="${k==='SHA-256'?'ltr':'auto'}">${esc(v)}</td></tr>`).join('');drawEntropy(a.entropy_samples||[]);$('results').classList.add('show');$('results').scrollIntoView({behavior:'smooth',block:'start'})}
-function drawEntropy(samples){const c=$('entropy'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.strokeStyle='#293c56';ctx.fillStyle='#91a4bf';ctx.font='12px system-ui';for(let i=0;i<=4;i++){let y=15+(h-40)*i/4;ctx.beginPath();ctx.moveTo(42,y);ctx.lineTo(w-8,y);ctx.stroke();ctx.fillText((8-i*2).toString(),8,y+4)}if(!samples.length){ctx.fillText('لا توجد عينات entropy',w/2-65,h/2);return}const plotW=w-55,plotH=h-40,step=plotW/samples.length;samples.forEach((s,i)=>{let bh=Math.max(1,(s.entropy/8)*plotH),x=45+i*step;ctx.fillStyle=s.entropy>=7?'#f6bd60':'#4dd7d0';ctx.fillRect(x,15+plotH-bh,Math.max(1,step-2),bh)})}$('download').onclick=()=>{if(!lastReport)return;const blob=new Blob([JSON.stringify(lastReport,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='fsa-report.json';a.click();URL.revokeObjectURL(url)};
-
-// Lightweight bilingual UI. English is the default; all analysis data is preserved verbatim.
-const translations={
-'منصة التحليل الأمني الثابت للبرمجيات الثابتة':'Static firmware security analysis platform',
-'الإصدار 0.1.2':'Version 0.1.2','توثيق API ↗':'API documentation ↗',
-'افحص ملف Firmware':'Analyze a firmware file','وافهم مكوّناته ومؤشرات مخاطره':'Understand its components and risk indicators',
-'تحليل ثابت محلي دون تشغيل البرنامج الثابت أو تعديله. استخرج البصمات المعروفة، إصدارات Linux، مؤشرات النصوص، وعينات entropy ضمن تقرير قابل للتصدير.':'Local static analysis without executing or modifying firmware. Identify known signatures, Linux versions, text indicators, and entropy samples in an exportable report.',
-'اسحب ملف Firmware إلى هنا':'Drag a firmware file here','أو اختر ملفاً من جهازك — BIN · DAV · IMG · ZIP · وغيرها':'Or select a file from your device — BIN · DAV · IMG · ZIP · and more',
-'اختيار ملف':'Choose file','بدء التحليل':'Start analysis','الحد الأقصى 128 MiB':'Maximum size: 128 MiB','لا يتم حفظ الملف':'File is not retained','لا يتم تنفيذ Firmware':'Firmware is never executed',
-'كيف يعمل الفحص؟':'How does the scan work?','قراءة آمنة':'Safe intake','استقبال الملف مؤقتاً والتحقق من حجمه.':'Temporarily receive the file and validate its size.',
-'تحليل البنية والمؤشرات':'Structure and indicator analysis','SHA-256، التواقيع، strings، entropy وإصدارات النواة.':'SHA-256, signatures, strings, entropy, and kernel versions.',
-'مراجعة النتائج':'Review results','عرض الأدلة والتصدير بصيغة JSON.':'Review evidence and export as JSON.',
-'تنبيه: النتائج الاستدلالية ليست إثباتاً لوجود ثغرة أو قابلية استغلال. يلزم التحقق اليدوي من سياق الجهاز وإصدارات المورّد.':'Notice: heuristic results do not prove a vulnerability or exploitability. Manually verify the device context and vendor-specific versions.',
-'ملخص نتائج الفحص':'Scan results summary','تنزيل التقرير JSON':'Download JSON report','توزيع Entropy حسب موضع العينة':'Entropy distribution by sample offset',
-'القيمة من 0 إلى 8 بت — القيم المرتفعة قد تشير إلى ضغط أو تشفير، لكنها لا تثبت ذلك.':'Values range from 0 to 8 bits. High values may indicate compression or encryption, but do not prove either.',
-'تواقيع مكوّنات Firmware':'Firmware component signatures','المؤشرات الأمنية':'Security indicators','إصدارات Linux المكتشفة':'Detected Linux versions','مطابقات CVE':'CVE matches',
-'جدول التواقيع ومواقعها':'Signatures and offsets','المكوّن':'Component','الإزاحة (Hex)':'Offset (hex)','الإزاحة (Decimal)':'Offset (decimal)','الوصف':'Description',
-'معلومات الملف والبصمة':'File information and fingerprint','اسم الملف':'File name','الحجم':'Size','عدد النصوص المطبوعة':'Printable strings count','حدود التحليل':'Analysis limitations',
-'أداة تحليل دفاعي ثابت ومفتوح المصدر':'Open-source defensive static analysis tool','لا تنفيذ · لا استغلال · لا تعديل للملف':'No execution · No exploitation · No file modification',
-'لا توجد عينات entropy':'No entropy samples available','لم تُكتشف تواقيع معروفة ضمن قواعد الإصدار الحالي.':'No known signatures were detected by the current rule set.',
-'لا توجد مؤشرات استدلالية في النصوص المستخرجة. هذا لا يعني خلو الملف من المخاطر.':'No heuristic indicators were found in extracted strings. This does not mean the file is risk-free.',
-'لم يُعثر على إصدار Linux.':'No Linux version was found.','لا توجد مطابقات CVE. لم يتم إجراء استعلام خارجي.':'No CVE matches. No external lookup was performed.',
-'لا توجد نتائج':'No results','لا توجد عينات entropy':'No entropy samples available',
-'حجم الملف':'File size','التواقيع المكتشفة':'Signatures detected','المؤشرات الأمنية':'Security indicators','إصدارات Kernel':'Kernel versions','الحجم المقروء':'Input size','مواضع البصمات':'Signature locations','قواعد تحتاج مراجعة':'Rules requiring review','إصدارات فريدة':'Unique versions','تحتاج مطابقة يدوية':'Manual matching required'
-};
-let uiLanguage='en';
-function translateText(text){const trimmed=text.trim();if(!trimmed)return text;let translated=translations[trimmed];if(translated)return text.replace(trimmed,translated);if(trimmed.includes('ثقة '))return text.replace('ثقة ','Confidence ');return text}
-function applyLanguage(lang){uiLanguage=lang;const root=document.documentElement;root.lang=lang;root.dir=lang==='ar'?'rtl':'ltr';document.title=lang==='ar'?'FSA — محلّل أمن البرمجيات الثابتة':'FSA — Firmware Security Analyzer';document.body.style.textAlign=lang==='ar'?'right':'left';document.querySelectorAll('.notice').forEach(el=>{el.style.borderRight=lang==='ar'?'3px solid var(--amber)':'0';el.style.borderLeft=lang==='en'?'3px solid var(--amber)':'0'});const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode()){if(node.parentElement.closest('script,style'))continue;const original=node.__fsaOriginal??node.nodeValue;node.__fsaOriginal=original;node.nodeValue=lang==='en'?translateText(original):original;}$('languageToggle').textContent=lang==='ar'?'English':'العربية';$('languageToggle').setAttribute('aria-label',lang==='ar'?'Switch to English':'التبديل إلى العربية');}
-$('languageToggle').addEventListener('click',()=>applyLanguage(uiLanguage==='ar'?'en':'ar'));
-// Translate dynamic labels and status messages without translating firmware-derived evidence.
-const originalSetStatus=setStatus;setStatus=(msg,kind='')=>{if(uiLanguage==='en'){const map={'جارٍ رفع الملف وتحليله…':'Uploading and analyzing the file…','اكتمل التحليل بنجاح. راجع المؤشرات ولا تعتبرها ثغرات مؤكدة.':'Analysis completed. Review the indicators; they are not confirmed vulnerabilities.','حجم الملف يتجاوز الحد المسموح (128 MiB).':'The file exceeds the maximum allowed size (128 MiB).'};msg=map[msg]||msg.replace('تعذّر إكمال الفحص: ','Scan failed: ')}originalSetStatus(msg,kind)};
-const originalRender=render;render=(r)=>{originalRender(r);applyLanguage(uiLanguage)}
-applyLanguage('en');
-</script></body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Firmware Security Analyzer</title>
+    <link rel="icon" href="/assets/fsa.svg" />
+    <link rel="stylesheet" href="/assets/dashboard.css" />
+    <script defer src="/assets/dashboard.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <img src="/assets/fsa.svg" width="38" height="38" alt="" /><b
+          >Firmware Security Analyzer</b
+        ><button id="languageToggle">العربية</button>
+      </div>
+    </header>
+    <main>
+      <section class="intake">
+        <div>
+          <h1 data-ar="فحص الفيرموير">Firmware inspection</h1>
+          <p data-ar="اختر صورة لفحص بنيتها ومؤشراتها الأمنية محلياً.">
+            Choose an image to inspect its structure and security indicators
+            locally.
+          </p>
+        </div>
+        <form id="scanForm">
+          <input id="file" type="file" aria-label="Firmware" /><label
+            for="file"
+            id="picker"
+            data-ar="اختيار ملف"
+            >Choose file</label
+          ><span id="fileName" data-ar="لم يتم اختيار ملف"
+            >No file selected</span
+          ><button id="scan" class="primary" disabled data-ar="بدء التحليل">
+            Run analysis</button
+          ><button id="cancel" type="button" hidden data-ar="إلغاء">
+            Cancel
+          </button>
+        </form>
+        <div class="option">
+          <input id="inspectArchive" type="checkbox" /><label
+            for="inspectArchive"
+            data-ar="فحص محتويات أرشيف ZIP أو TAR"
+            >Inspect ZIP or TAR contents</label
+          >
+        </div>
+        <button type="button" id="example" data-ar="عرض تقرير العينة">View sample report</button>
+        <div id="status" role="status" aria-live="polite"></div>
+      </section>
+      <section id="results" hidden>
+        <div class="reporthead">
+          <div>
+            <h2 data-ar="تقرير التحليل">Analysis report</h2>
+            <p id="reportName" dir="auto"></p>
+          </div>
+          <div class="actions">
+            <button id="download" data-ar="تنزيل JSON">Download JSON</button
+            ><button id="print" data-ar="طباعة / PDF">Print / PDF</button>
+          </div>
+        </div>
+        <div id="metrics"></div>
+        <nav aria-label="Report sections">
+          <a href="#structure" data-ar="البنية">Structure</a
+          ><a href="#evidence" data-ar="الأدلة">Evidence</a
+          ><a href="#details" data-ar="بيانات الملف">File details</a>
+        </nav>
+        <section id="structure">
+          <h3 data-ar="توزيع الإنتروبيا">Entropy profile</h3>
+          <canvas
+            id="entropy"
+            width="1100"
+            height="130"
+            aria-label="Sampled entropy from 0 to 8 bits per byte"
+          ></canvas>
+          <p class="caption" id="coverage"></p>
+          <h3 data-ar="تواقيع المكوّنات">Component signatures</h3>
+          <p class="caption" id="signatureNote"></p>
+          <label for="markerFilter" data-ar="تصفية التواقيع">Filter signatures</label>
+          <input type="search" id="markerFilter" aria-describedby="matchCount">
+          <span id="matchCount" role="status"></span>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th data-ar="المكوّن">Component</th>
+                  <th data-ar="الإزاحة">Offset</th>
+                  <th data-ar="البايتات">Magic bytes</th>
+                  <th data-ar="الوصف">Description</th>
+                </tr>
+              </thead>
+              <tbody id="signatures"></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h3 data-ar="المؤشرات الأمنية والأدلة">
+            Security indicators and evidence
+          </h3>
+          <div id="findings"></div>
+          <h3 data-ar="إصدارات النواة">Kernel versions</h3>
+          <p id="kernels"></p>
+          <h3 data-ar="مطابقات CVE">CVE matches</h3>
+          <div id="cves"></div>
+        </section>
+        <section id="archiveSection" hidden>
+          <h3 data-ar="ملفات الأرشيف">Archive files</h3>
+          <div id="archiveFiles"></div>
+        </section>
+        <section id="details">
+          <h3 data-ar="بيانات الملف">File details</h3>
+          <dl id="metadata"></dl>
+          <h3 data-ar="حدود التحليل">Analysis limitations</h3>
+          <ul id="limits"></ul>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

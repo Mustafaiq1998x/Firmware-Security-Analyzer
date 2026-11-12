@@ -53,3 +53,16 @@ def test_scan_uses_bounded_printable_strings(tmp_path):
     report = scan_file(sample)
     assert report["analysis"]["printable_strings_count"] <= 20_000
     assert all(len(value) <= 1024 for value in extract_strings(sample.read_bytes()))
+
+
+def test_checked_tar_header(tmp_path):
+    import tarfile
+
+    path = tmp_path / "image.bin"
+    with tarfile.open(path, "w") as tf:
+        tf.addfile(tarfile.TarInfo("config"))
+    assert scan_file(path)["analysis"]["container_header"]["format"] == "TAR"
+    data = bytearray(path.read_bytes())
+    data[0] ^= 1
+    path.write_bytes(data)
+    assert "container_header" not in scan_file(path)["analysis"]

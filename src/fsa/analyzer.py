@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import mmap
 import os
+import tarfile
 from pathlib import Path
 
 from .cve import load_feed, match_kernel_cves
@@ -42,6 +43,16 @@ def _analyze_buffer(data, *, name: str, size: int, max_strings: int,
             "Signature matches are byte-pattern indicators, not validated filesystem or container parses.",
         ],
     }
+    # GNU and POSIX TAR store their magic inside the first 512-byte header.
+    if size >= 512 and data[257:262] == b"ustar":
+        try:
+            tarfile.TarInfo.frombuf(data[:512], "utf-8", "surrogateescape")
+        except tarfile.HeaderError:
+            pass
+        else:
+            report["analysis"]["container_header"] = {
+                "format": "TAR", "offset": 0, "validated": "first header checksum"
+            }
     if cve_feed:
         report["analysis"]["cve_matches"] = match_kernel_cves(versions, load_feed(cve_feed))
     return report
