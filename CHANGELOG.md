@@ -1,12 +1,29 @@
 # Changelog
 
+## Unreleased — Phase 2 bounded archive extraction
+
+- Added non-recursive ZIP and TAR extraction without shell commands or external unpackers.
+- Enforced archive, per-file, aggregate byte, file-count, directory-count, path-depth, compression-ratio, and time limits.
+- Rejected traversal/absolute/UNC/drive paths, ambiguous Windows names, duplicate and case-colliding paths, links, special entries, and sparse TAR files.
+- Added streamed byte accounting, per-file SHA-256 hashes, extraction reports, and cleanup on failure.
+- Added the `fsa extract` CLI command and documented the extraction threat model and format limitations.
+- Added adversarial extraction regression tests.
+- Preflight ZIP entry count and central-directory size before loading `ZipInfo` records.
+- Track normalized path components to reject collisions in implicit parent directories.
+- Validate ZIP Unix/DOS directory metadata and reject contradictory directory records.
+- Clean up only paths created by the extraction operation, including on keyboard interruption.
+- Split Ruff into an optional `lint` extra so Android/Termux core testing does not require Rust-based Ruff builds.
+- Use read-only memory mapping for firmware scans and cap each extracted printable string at 1 KiB.
+- Distribute entropy samples across the full firmware image instead of sampling only its first MiB.
+- Expand conservative marker coverage for UBI/UBIFS, Android boot/sparse, Zstandard, LZ4, bzip2, CPIO, and TRX.
+- This work remains pending cross-platform CI and review; no release version has been assigned.
+
 ## 0.1.2 — Bilingual dashboard (2026-11-10)
 
 - Added an in-dashboard Arabic/English language switch with correct RTL/LTR layout and translated interface labels, scan states, and result summaries.
 - Kept firmware-derived names, hashes, signatures, and evidence unchanged across language switches.
 - Expanded dashboard regression checks for the language selector and English resources.
 - Bumped the package version to 0.1.2.
-
 
 ## 0.1.1 — Browser dashboard and web dependency fix (2026-11-10)
 

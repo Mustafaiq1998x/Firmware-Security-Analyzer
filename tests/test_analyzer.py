@@ -1,4 +1,6 @@
 from fsa.analyzer import scan_file
+from fsa.heuristics import extract_strings
+
 
 def test_scan_file(tmp_path):
     sample = tmp_path / "sample.bin"
@@ -34,3 +36,20 @@ def test_cli_refuses_same_json_and_html_path(tmp_path):
     report = tmp_path / "report.out"
     with pytest.raises(SystemExit, match="different"):
         _ensure_safe_report_paths(str(image), str(report), str(report))
+
+
+def test_scan_empty_file(tmp_path):
+    sample = tmp_path / "empty.bin"
+    sample.write_bytes(b"")
+    report = scan_file(sample)
+    assert report["input"]["size_bytes"] == 0
+    assert report["analysis"]["signatures"] == []
+    assert report["analysis"]["entropy_samples"] == []
+
+
+def test_scan_uses_bounded_printable_strings(tmp_path):
+    sample = tmp_path / "long-string.bin"
+    sample.write_bytes(b"A" * 100_000)
+    report = scan_file(sample)
+    assert report["analysis"]["printable_strings_count"] <= 20_000
+    assert all(len(value) <= 1024 for value in extract_strings(sample.read_bytes()))

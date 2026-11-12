@@ -1,7 +1,9 @@
-"""Read-only firmware image analyzer."""
+"""Read-only, memory-mapped firmware image analyzer."""
 from __future__ import annotations
 
 import hashlib
+import mmap
+import os
 from pathlib import Path
 
 from .cve import load_feed, match_kernel_cves
@@ -12,34 +14,17 @@ from .signatures import identify_signatures
 DEFAULT_MAX_FILE_SIZE = 512 * 1024 * 1024
 
 
-def scan_file(
-    path: str | Path,
-    max_strings: int = 20000,
-    cve_feed: str | None = None,
-    max_file_size: int = DEFAULT_MAX_FILE_SIZE,
-) -> dict:
-    if max_file_size <= 0:
-        raise ValueError("max_file_size must be positive")
-    source = Path(path)
-    if not source.is_file():
-        raise FileNotFoundError(source)
-    size = source.stat().st_size
-    if size > max_file_size:
-        raise ValueError(f"Input exceeds configured size limit ({max_file_size} bytes)")
-    # Read at most limit + 1 to handle a file growing after stat().
-    with source.open("rb") as handle:
-        data = handle.read(max_file_size + 1)
-    if len(data) > max_file_size:
-        raise ValueError(f"Input exceeds configured size limit ({max_file_size} bytes)")
-
+def _analyze_buffer(data, *, name: str, size: int, max_strings: int,
+                    cve_feed: str | None) -> dict:
+    """Analyze a bytes-like object; callers keep its backing store read-only."""
     strings = extract_strings(data, limit=max_strings)
     versions = find_kernel_versions(strings)
     report = {
         "tool": "Firmware Security Analyzer",
         "version": "0.1.2",
         "input": {
-            "name": source.name,
-            "size_bytes": len(data),
+            "name": name,
+            "size_bytes": size,
             "sha256": hashlib.sha256(data).hexdigest(),
         },
         "analysis": {
@@ -54,8 +39,43 @@ def scan_file(
             "Static triage only; findings require manual validation.",
             "A version string does not prove a CVE is applicable.",
             "No firmware execution or automatic filesystem extraction is performed.",
+            "Signature matches are byte-pattern indicators, not validated filesystem or container parses.",
         ],
     }
     if cve_feed:
         report["analysis"]["cve_matches"] = match_kernel_cves(versions, load_feed(cve_feed))
     return report
+
+
+def scan_file(
+    path: str | Path,
+    max_strings: int = 20000,
+    cve_feed: str | None = None,
+    max_file_size: int = DEFAULT_MAX_FILE_SIZE,
+) -> dict:
+    """Scan a firmware image read-only using mmap to avoid a full RAM copy.
+
+    String extraction is separately bounded by count and per-string length.
+    Empty files are handled without attempting to create a zero-length mapping.
+    """
+    if max_file_size <= 0:
+        raise ValueError("max_file_size must be positive")
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(source)
+
+    with source.open("rb") as handle:
+        size = os.fstat(handle.fileno()).st_size
+        if size > max_file_size:
+            raise ValueError(f"Input exceeds configured size limit ({max_file_size} bytes)")
+        if size == 0:
+            return _analyze_buffer(b"", name=source.name, size=0,
+                                   max_strings=max_strings, cve_feed=cve_feed)
+        # mmap is read-only: analysis functions can scan the buffer without
+        # copying the entire firmware image into Python-managed memory.
+        with mmap.mmap(handle.fileno(), length=0, access=mmap.ACCESS_READ) as data:
+            mapped_size = len(data)
+            if mapped_size > max_file_size:
+                raise ValueError(f"Input exceeds configured size limit ({max_file_size} bytes)")
+            return _analyze_buffer(data, name=source.name, size=mapped_size,
+                                   max_strings=max_strings, cve_feed=cve_feed)
