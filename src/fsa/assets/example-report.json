@@ -1,0 +1,55 @@
+{
+  "tool": "Firmware Security Analyzer",
+  "version": "0.1.2",
+  "input": {
+    "name": "demo_firmware.bin",
+    "size_bytes": 102,
+    "sha256": "bc1fff1765c26efc2bbd546619dd012952d305e05b099ad2dcc10d828e2a3830"
+  },
+  "analysis": {
+    "signatures": [
+      {
+        "name": "ELF",
+        "offset": 29,
+        "magic_hex": "7f454c46",
+        "description": "Executable and Linkable Format"
+      },
+      {
+        "name": "XZ",
+        "offset": 96,
+        "magic_hex": "fd377a585a00",
+        "description": "XZ stream"
+      }
+    ],
+    "entropy_samples": [
+      {
+        "offset": 0,
+        "size": 102,
+        "entropy": 5.0004
+      }
+    ],
+    "printable_strings_count": 3,
+    "kernel_versions": [
+      "4.9.138"
+    ],
+    "heuristic_findings": [
+      {
+        "rule": "possible_hardcoded_password",
+        "severity": "review",
+        "confidence": "low",
+        "count_sampled": 1,
+        "evidence": [
+          "password=not-a-real-secret"
+        ],
+        "message": "Heuristic indicator only; manually validate context and whether the component is active."
+      }
+    ],
+    "cve_matches": []
+  },
+  "limitations": [
+    "Static triage only; findings require manual validation.",
+    "A version string does not prove a CVE is applicable.",
+    "No firmware execution or automatic filesystem extraction is performed.",
+    "Signature matches are byte-pattern indicators, not validated filesystem or container parses."
+  ]
+}

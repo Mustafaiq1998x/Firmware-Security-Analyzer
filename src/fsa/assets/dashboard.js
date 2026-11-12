@@ -50,6 +50,29 @@ function entropy(samples) {
     " · " +
     samples.length;
 }
+function filterMarkers() {
+  const query = el("markerFilter").value.toLowerCase().trim();
+  const matches = report.analysis.signatures;
+  const visible = matches.filter(s =>
+    [s.name, s.magic_hex, s.description, String(s.offset), "0x"+s.offset.toString(16)]
+      .some(value => value.toLowerCase().includes(query)));
+  el("matchCount").textContent = visible.length + " / " + matches.length;
+  el("signatures").replaceChildren(
+    ...visible.map((s) => {
+      const tr = node("tr", "");
+      tr.append(
+        ...[
+          s.name,
+          "0x" + s.offset.toString(16),
+          s.magic_hex,
+          s.description,
+        ].map((v) => node("td", v)),
+      );
+      return tr;
+    }),
+  );
+ }
+el("markerFilter").oninput = filterMarkers;
 function render() {
   const { input, analysis: a } = report;
   el("results").hidden = false;
@@ -88,20 +111,7 @@ function render() {
           "Byte patterns and their offsets in the input image.",
           "أنماط البايتات وإزاحاتها في ملف الإدخال.",
         );
-  el("signatures").replaceChildren(
-    ...a.signatures.map((s) => {
-      const tr = node("tr", "");
-      tr.append(
-        ...[
-          s.name,
-          "0x" + s.offset.toString(16),
-          s.magic_hex,
-          s.description,
-        ].map((v) => node("td", v)),
-      );
-      return tr;
-    }),
-  );
+  filterMarkers();
   if (!a.signatures.length)
     el("signatureNote").textContent = localText(
       "No known markers found.",
@@ -224,6 +234,7 @@ el("scanForm").onsubmit = async (e) => {
   e.preventDefault();
   if (busy || el("scan").disabled) return;
   busy = true;
+  el("example").disabled = true;
   el("scan").disabled = el("file").disabled = true;
   controller = new AbortController();
   el("cancel").hidden = false;
@@ -240,6 +251,7 @@ el("scanForm").onsubmit = async (e) => {
     });
     const data = await response.json();
     if (!response.ok) throw Error(data.detail || response.status);
+    el("markerFilter").value = "";
     report = data;
     render();
     status("Analysis complete.", "اكتمل التحليل.");
@@ -254,9 +266,31 @@ el("scanForm").onsubmit = async (e) => {
       );
   } finally {
     busy = false;
+    el("example").disabled = false;
     el("cancel").hidden = true;
     el("inspectArchive").disabled = false;
     el("file").disabled = el("scan").disabled = false;
+  }
+};
+el("example").onclick = async () => {
+  if (busy) return;
+  busy = true;
+  el("example").disabled = el("file").disabled = el("scan").disabled = true;
+  try {
+    const response = await fetch("/assets/example-report.json");
+    if (!response.ok) throw Error(response.status);
+    report = await response.json();
+    el("markerFilter").value = "";
+    render();
+    status("Showing the bundled synthetic sample.", "هذا تقرير العينة التجريبية المرفقة.");
+    el("results").scrollIntoView({block: "start"});
+  } catch (error) {
+    status("Sample report unavailable.", "تعذّر فتح تقرير العينة.");
+  } finally {
+    busy = false;
+    el("example").disabled = el("file").disabled = false;
+    const file = el("file").files[0];
+    el("scan").disabled = !file || file.size > 128*1048576;
   }
 };
 el("cancel").onclick = () => controller?.abort();

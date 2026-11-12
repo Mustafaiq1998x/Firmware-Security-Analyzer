@@ -312,3 +312,7 @@ section {
     max-height: none;
   }
 }
+#example { margin-top: 12px; }
+#markerFilter { padding: .5rem .65rem; border: 1px solid var(--border); border-radius: 6px; margin: .5rem; max-width: 100%; }
+#matchCount { color: var(--muted); font-variant-numeric: tabular-nums; }
+@media print { #markerFilter, label[for="markerFilter"], #matchCount { display: none; } }

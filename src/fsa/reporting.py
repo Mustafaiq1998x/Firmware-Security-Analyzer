@@ -1,25 +1,66 @@
-"""Report serialization."""
+"""Write machine-readable and standalone human-readable inspection reports."""
 import html
 import json
 from pathlib import Path
+
 
 def write_json(report: dict, path: str | Path) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
 
+
+def _text(value):
+    return html.escape(str(value))
+
+
+def _table(columns, records, empty):
+    if not records:
+        return f"<p>{_text(empty)}</p>"
+    headers = "".join(f"<th scope='col'>{_text(c)}</th>" for c in columns)
+    rows = []
+    for record in records:
+        cells = "".join(f"<td>{_text(value)}</td>" for value in record)
+        rows.append(f"<tr>{cells}</tr>")
+    return f"<div class='scroll'><table><thead><tr>{headers}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+
+
 def write_html(report: dict, path: str | Path) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    pretty = html.escape(json.dumps(report, indent=2, ensure_ascii=False))
-    document = f"""<!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>FSA Report</title>
-<style>
-body{{font:15px/1.6 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;background:#10151d;color:#e8edf4}}
-pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:#182230;padding:1rem;border-radius:8px}}
-h1{{color:#8fc7ff}} .note{{color:#ffd58a}}
-</style><h1>Firmware Security Analyzer</h1>
-<p class="note">Static triage report. Indicators are not proof of exploitability.</p>
-<pre>{pretty}</pre></html>"""
+    source = report.get("input", {})
+    analysis = report.get("analysis", {})
+    signatures = analysis.get("signatures", [])
+    findings = analysis.get("heuristic_findings", [])
+    evidence = []
+    for finding in findings:
+        excerpts = "".join(f"<pre>{_text(s)}</pre>" for s in finding.get("evidence", []))
+        evidence.append(f"<article><h3>{_text(finding.get('rule', 'Indicator'))}</h3>"
+                        f"<p>Confidence · {_text(finding.get('confidence', 'unspecified'))}</p>"
+                        f"<p>{_text(finding.get('message', ''))}</p>{excerpts}</article>")
+    components = _table(
+        ["Component", "Byte offset", "Magic bytes", "Description"],
+        [(s.get("name", ""), s.get("offset", ""), s.get("magic_hex", ""), s.get("description", ""))
+         for s in signatures], "No matching signatures in the sampled data.")
+    advisories = _table(
+        ["Advisory", "Component", "Version", "Status"],
+        [(c.get("cve", ""), c.get("component", ""), c.get("detected_version", ""), c.get("status", ""))
+         for c in analysis.get("cve_matches", [])], "No advisory matches recorded.")
+    limitations = "".join(f"<li>{_text(s)}</li>" for s in report.get("limitations", []))
+    raw = _text(json.dumps(report, indent=2, ensure_ascii=False))
+    style = (Path(__file__).with_name("assets") / "report.css").read_text(encoding="utf-8")
+    document = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{_text(source.get('name', 'Image'))} · FSA inspection report</title><style>{style}</style></head>
+<body><header>Firmware Security Analyzer</header><main><h1>{_text(source.get('name', 'Inspection report'))}</h1>
+<dl><dt>SHA-256</dt><dd>{_text(source.get('sha256', 'Unavailable'))}</dd>
+<dt>Input size</dt><dd>{_text(source.get('size_bytes', 'Unknown'))} bytes</dd>
+<dt>Kernel strings</dt><dd>{_text(', '.join(analysis.get('kernel_versions', [])) or 'None detected')}</dd></dl>
+<nav><a href="#structure">Component signatures ({len(signatures)})</a>
+<a href="#evidence">Indicator rules ({len(findings)})</a><a href="#advisories">Advisories</a></nav>
+<section id="structure"><h2>Component signatures</h2>{components}</section>
+<section id="evidence"><h2>Evidence for review</h2>{''.join(evidence) or '<p>No heuristic indicators recorded.</p>'}</section>
+<section id="advisories"><h2>Advisory matches</h2>{advisories}</section>
+<h2>Analysis limitations</h2><ul>{limitations}</ul>
+<details><summary>Complete report data</summary><pre>{raw}</pre></details></main></body></html>"""
     target.write_text(document, encoding="utf-8")

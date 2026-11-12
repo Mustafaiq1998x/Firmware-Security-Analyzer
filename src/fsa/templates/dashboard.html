@@ -46,6 +46,7 @@
             >Inspect ZIP or TAR contents</label
           >
         </div>
+        <button type="button" id="example" data-ar="عرض تقرير العينة">View sample report</button>
         <div id="status" role="status" aria-live="polite"></div>
       </section>
       <section id="results" hidden>
@@ -76,6 +77,9 @@
           <p class="caption" id="coverage"></p>
           <h3 data-ar="تواقيع المكوّنات">Component signatures</h3>
           <p class="caption" id="signatureNote"></p>
+          <label for="markerFilter" data-ar="تصفية التواقيع">Filter signatures</label>
+          <input type="search" id="markerFilter" aria-describedby="matchCount">
+          <span id="matchCount" role="status"></span>
           <div class="scroll">
             <table>
               <thead>
