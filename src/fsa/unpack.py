@@ -2,6 +2,7 @@
 from hashlib import sha256
 from pathlib import Path
 
+from .hikvision import FORMAT
 from .extraction import ExtractionError, ExtractionLimits, safe_extract_archive
 
 
@@ -29,6 +30,9 @@ def unpack_image(source, destination, report):
         try:
             for part in parts:
                 suffix = "rootfs.squashfs" if part["format"] == "SquashFS 4.0" else "payload.bin"
+                if profile["outer_format"] == FORMAT:
+                    # Use a fixed data suffix even when the stored entry names an executable.
+                    suffix = part["name"] + ".bin"
                 name = f"{part['offset']:08x}-{suffix}"
                 path = destination / name
                 src.seek(part["offset"])

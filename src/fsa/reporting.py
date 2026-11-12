@@ -45,21 +45,26 @@ def write_html(report: dict, path: str | Path) -> None:
     advisories = _table(
         ["Advisory", "Component", "Version", "Status"],
         [(c.get("cve", ""), c.get("component", ""), c.get("detected_version", ""), c.get("status", ""))
-         for c in analysis.get("cve_matches", [])], "No advisory matches recorded.")
+         for c in report.get("packaged_firmware", analysis).get("cve_matches", [])], "No advisory matches recorded.")
     limitations = "".join(f"<li>{_text(s)}</li>" for s in report.get("limitations", []))
-    profile = analysis.get("firmware_profile", {})
+    firmware = report.get("packaged_firmware", analysis)
+    profile = firmware.get("firmware_profile", {})
     identity = profile.get("identity", {})
     encryption = profile.get("encryption", {})
     inventory = report.get("archive_inspection", {})
     detail_rows = [
-        ("Outer format", profile.get("outer_format", "Unknown")),
+        ("Outer format", analysis.get("firmware_profile", {}).get("outer_format", "Unknown")),
+        ("Firmware format", profile.get("outer_format", "Unknown")),
+        ("Vendor", identity.get("vendor") or "Unknown"),
+        ("Architecture", identity.get("architecture") or "Unknown"),
+        ("Firmware kernel versions", ", ".join(firmware.get("kernel_versions", [])) or "Unknown"),
         ("Board", identity.get("board") or "Unknown"),
         ("Supported devices", ", ".join(identity.get("supported_devices", [])) or "Unknown"),
         ("System", " ".join(filter(None, [identity.get("os_family"), identity.get("distribution"), identity.get("release")])) or "Unknown"),
         ("Encryption", encryption.get("status", "Undetermined")),
         ("Cipher and mode", " ".join(filter(None, [encryption.get("algorithm"), encryption.get("mode")])) or "Unknown"),
         ("Encryption evidence", encryption.get("evidence", "Unavailable")),
-        ("CVE assessment", analysis.get("cve_assessment", "Unavailable")),
+        ("CVE assessment", firmware.get("cve_assessment", "Unavailable")),
     ]
     if inventory.get("status") == "completed":
         scope = "Exported components" if inventory["format"] == "components" else "Extracted regular members"

@@ -11,6 +11,7 @@ import time
 from .analyzer import scan_file
 from .extraction import safe_extract_archive
 from .unpack import unpack_image
+from .hikvision import FORMAT as SWKH_FORMAT
 
 MEMORY_BYTES = 768 * 1024 * 1024
 MAX_SECONDS = 120
@@ -76,6 +77,20 @@ def _analyze(source, workspace, max_bytes, inspect_archive, feed=None, desktop=F
                     report["archive_inspection"] = unpack_image(source, unpacked, report)
                 else:
                     report["archive_inspection"] = safe_extract_archive(source, unpacked)
+                manifest = report["archive_inspection"]
+                members = [e for e in manifest.get("entries", []) if e["status"] == "extracted"]
+                if (manifest["format"] == "zip" and len(members) == 1 and
+                        Path(members[0]["path"]).suffix.lower() == ".dav"):
+                    member = members[0]
+                    inner = scan_file(unpacked / member["path"], cve_feed=feed, max_file_size=max_bytes)
+                    if inner["analysis"]["firmware_profile"]["outer_format"] == SWKH_FORMAT:
+                        report["packaged_firmware"] = {
+                            "path": member["path"], "sha256": inner["input"]["sha256"],
+                            "firmware_profile": inner["analysis"]["firmware_profile"],
+                            "kernel_versions": inner["analysis"]["kernel_versions"],
+                            "cve_assessment": inner["analysis"]["cve_assessment"],
+                            "cve_matches": inner["analysis"]["cve_matches"],
+                        }
             except (ValueError, OSError) as exc:
                 report["archive_inspection"] = {"status": "rejected", "reason": str(exc)}
         output.write_text(json.dumps(report), encoding="utf-8")

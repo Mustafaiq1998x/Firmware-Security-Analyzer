@@ -4,6 +4,8 @@ import re
 import struct
 import zlib
 
+from . import hikvision
+
 
 def _crc(data, start, end):
     with memoryview(data)[start:end] as view:
@@ -94,6 +96,32 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
+    index = hikvision.read_index(data)
+    if index:
+        identity = {"vendor": "Hikvision", "evidence": {"source": "SWKH update directory", "offset": 0}}
+        for part in index["entries"]:
+            start = part["offset"]
+            if data[start:start+4] != bytes.fromhex("27051956"):
+                continue
+            with memoryview(data)[start:start + part["size_bytes"]] as member:
+                header = _uimage(member)
+            if header:
+                part["format"] = header["format"]
+                part["compression"] = header["compression"]
+                part["header_name"] = header["name"]
+                if header["os"]:
+                    identity["os_family"] = header["os"]
+                    identity["evidence"]["os_header_offset"] = start
+                arch = {2:"ARM", 5:"MIPS", 22:"ARM64"}.get(data[start+29])
+                if arch:
+                    identity["architecture"] = arch
+                match = re.search(r"\bLinux-(\d+\.\d+(?:\.\d+)?)\b", header["name"] or "")
+                if match and match[1] not in versions:
+                    versions.append(match[1])
+        return {"outer_format": hikvision.FORMAT, "identity": identity, "components": index["entries"],
+                "directory_bytes": index["directory_bytes"], "trailing_bytes": index["trailing_bytes"],
+                "encryption": {"status": "undetermined", "algorithm": None,
+                               "evidence": "SWKH directory encoding does not establish payload encryption."}}
     identity = _openwrt(data) or {}
     uimage = _uimage(data)
     components = ([uimage] if uimage else []) + list(_squashfs(data))
