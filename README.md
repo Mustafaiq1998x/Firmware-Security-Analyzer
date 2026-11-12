@@ -10,6 +10,18 @@ explicitly authorized to assess.
 > affects a device. FSA does not execute firmware, attempt logins, exploit
 > vulnerabilities, or modify input files.
 
+## Local inspection dashboard
+
+Install the web extra and launch `fsa-gui` to choose an image and inspect the report in your browser. [Dashboard instructions](docs/GUI.md) · [Real firmware validation](docs/FIRMWARE_VALIDATION.md)
+
+![Firmware Security Analyzer showing a real OpenWrt scan](docs/dashboard.png)
+
+## VirusTotal reports for downloads
+
+[Open the project's GitHub Releases](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases). For a scanned release, its notes contain the filename, SHA-256, scan date, detection counts and VirusTotal report link for each supported distribution package. Compare the downloaded file's SHA-256 with the row for that package. A release without a report has no published verification.
+
+Maintainers can set the Actions secret `VT_API_KEY` and run **VirusTotal release reports** for a published tag with attached packages. This workflow submits public distribution assets. Firmware selected in the dashboard stays local.
+
 ## Current features
 
 - SHA-256 and file metadata; read-only memory-mapped scanning avoids a full in-memory copy of the input image.

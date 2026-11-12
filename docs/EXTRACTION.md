@@ -58,10 +58,9 @@ traversal and decompression/resource exhaustion patterns,
 but it is not a sandbox against a compromised Python runtime, malicious local
 processes racing filesystem paths, or vulnerabilities in Python's archive
 parsers. The central-directory preflight bounds metadata allocation; it does
-not make Python's ZIP/TAR parsers formally memory-safe. Deadlines are checked between parser and copy operations. This release has no process-level RSS ceiling or hard watchdog. Run analysis as an
+not make Python's ZIP/TAR parsers formally memory-safe. Deadlines are checked between parser and copy operations. The direct extraction API and CLI use cooperative limits. The dashboard runs optional archive inspection in a separate worker under a 120-second watchdog. On Linux it caps address space and on Windows it caps process memory at 768 MiB. Run analysis as an
 unprivileged user in a disposable workspace. Do not expose extraction as a
-public unauthenticated service. The web upload endpoint
-continues to perform static scanning only; it does not extract archives.
+public unauthenticated service. Dashboard archive inspection is opt-in and returns a file manifest. It removes the private extraction workspace after the request.
 
 A successful extraction means only that the archive passed these checks and
 was copied within configured limits. It does not establish that extracted
