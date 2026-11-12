@@ -16,3 +16,9 @@ Choose **Open firmware…** to inspect a local file. BIN and DAV are filename ex
 **Files** shows the current manifest. **Save extracted files…** copies those outputs to a new directory under the selected parent. Closing the window or opening another image removes temporary outputs. Save the JSON or HTML report before moving on. Extraction and input limits apply; a rejected archive may still have a static scan report.
 
 **CVE feed…** selects a normalized local JSON advisory feed for subsequent scans. Kernel version ranges give review candidates. A `device-firmware` feed record must provide `cve`, `board`, `distribution`, `release` and an HTTPS `advisory_url`. Matches require an exact compatible device identifier, distribution and release. Verify the applicability and source of each advisory. See the [CLI feed reference](CLI.md).
+
+### Hikvision SWKH update directories
+
+FSA recognizes this container variant by its encoded directory, independent of the filename. It checks the directory checksum, entry count, ordered byte ranges and each stored-byte checksum before reporting a match. The component view includes directory names and sizes. Saved components retain their stored bytes and use a data-file suffix. A valid embedded legacy U-Boot header can supply OS, architecture and kernel version evidence. Board IDs, device compatibility, package release and payload encryption remain unknown without independent evidence. These checksums do not authenticate the update.
+
+When inspecting a ZIP containing one DAV update, the desktop shows both container layers. Saving files from the outer ZIP saves the DAV; opening that DAV lets you save its indexed entries. Offsets in its component table are relative to the DAV.
