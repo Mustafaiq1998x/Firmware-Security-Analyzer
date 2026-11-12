@@ -10,6 +10,7 @@ import time
 
 from .analyzer import scan_file
 from .extraction import safe_extract_archive
+from .unpack import unpack_image
 
 MEMORY_BYTES = 768 * 1024 * 1024
 MAX_SECONDS = 120
@@ -53,7 +54,7 @@ def _limit_windows_memory():
     # The child retains the job handle until it exits.
 
 
-def _analyze(source, workspace, max_bytes, inspect_archive):
+def _analyze(source, workspace, max_bytes, inspect_archive, feed=None, desktop=False):
     output = Path(workspace) / "result.json"
     try:
         if os.name == "nt":
@@ -63,12 +64,18 @@ def _analyze(source, workspace, max_bytes, inspect_archive):
             _, hard = resource.getrlimit(resource.RLIMIT_AS)
             cap = MEMORY_BYTES if hard == resource.RLIM_INFINITY else min(hard, MEMORY_BYTES)
             resource.setrlimit(resource.RLIMIT_AS, (cap, cap))
-        elif inspect_archive:
+        elif inspect_archive or desktop:
             raise ValueError("Archive inspection with a memory limit requires Linux or Windows")
-        report = scan_file(source, max_file_size=max_bytes)
-        if inspect_archive:
+        report = scan_file(source, cve_feed=feed, max_file_size=max_bytes)
+        profile = report["analysis"]["firmware_profile"]
+        supported = profile["outer_format"] in {"ZIP", "ZIP header marker", "TAR"} or profile["components"]
+        if inspect_archive or (desktop and supported):
             try:
-                report["archive_inspection"] = safe_extract_archive(source, Path(workspace) / "files")
+                unpacked = Path(workspace) / "files"
+                if desktop:
+                    report["archive_inspection"] = unpack_image(source, unpacked, report)
+                else:
+                    report["archive_inspection"] = safe_extract_archive(source, unpacked)
             except (ValueError, OSError) as exc:
                 report["archive_inspection"] = {"status": "rejected", "reason": str(exc)}
         output.write_text(json.dumps(report), encoding="utf-8")

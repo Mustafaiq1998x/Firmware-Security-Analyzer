@@ -20,7 +20,10 @@ yara = ["yara-python>=4.3"]
 
 [project.scripts]
 fsa = "fsa.cli:main"
-fsa-gui = "fsa.gui:main"
+fsa-web = "fsa.gui:main"
+
+[project.gui-scripts]
+fsa-gui = "fsa.desktop:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

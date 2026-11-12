@@ -10,7 +10,7 @@ Inspect a firmware image on your own machine. Open a component marker at its byt
 
 **[Walk through a sample report](docs/SAMPLE_REPORT.md)** · [Firmware test results](docs/FIRMWARE_VALIDATION.md) · [دليل البدء بالعربية](docs/START_AR.md) · [Release downloads](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases)
 
-![Local dashboard inspecting an OpenWrt firmware image](docs/dashboard.png)
+![Native desktop inspector showing a real OpenWrt image](docs/desktop.png)
 
 ## Run your first inspection
 
@@ -24,10 +24,10 @@ cd Firmware-Security-Analyzer
 | Linux or Kali | Windows PowerShell |
 |---|---|
 | `python3 -m venv .venv` | `py -3 -m venv .venv` |
-| `.venv/bin/python -m pip install ".[web]"` | `.\.venv\Scripts\python.exe -m pip install ".[web]"` |
+| `.venv/bin/python -m pip install .` | `.\.venv\Scripts\python.exe -m pip install .` |
 | `.venv/bin/fsa-gui` | `.\.venv\Scripts\fsa-gui.exe` |
 
-Use **View sample report** to explore the bundled example, or choose your image and select **Run analysis**. The GUI opens on loopback and accepts images up to 128 MiB. Use the language control for Arabic. [Dashboard controls](docs/GUI.md)
+Use **Open firmware…** in the native window. On Kali, install `python3-tk` if needed. Inspect the board, OS, compression, encryption evidence and file inventory, then save reports or extracted files. [Desktop guide](docs/DESKTOP.md) · [Optional bilingual web dashboard](docs/GUI.md)
 
 ## What the report tells you
 

@@ -7,7 +7,8 @@ import os
 import tarfile
 from pathlib import Path
 
-from .cve import load_feed, match_kernel_cves
+from .cve import load_feed, match_device_cves, match_kernel_cves
+from .profile import inspect_profile, inspect_zip
 from .entropy import sample_entropy
 from .heuristics import extract_strings, find_kernel_versions, inspect_strings
 from .signatures import identify_signatures
@@ -53,8 +54,19 @@ def _analyze_buffer(data, *, name: str, size: int, max_strings: int,
             report["analysis"]["container_header"] = {
                 "format": "TAR", "offset": 0, "validated": "first header checksum"
             }
+    analysis = report["analysis"]
+    analysis["firmware_profile"] = inspect_profile(data, analysis.get("container_header"), versions)
+    analysis["cve_assessment"] = "not assessed: no feed"
     if cve_feed:
-        report["analysis"]["cve_matches"] = match_kernel_cves(versions, load_feed(cve_feed))
+        feed = load_feed(cve_feed)
+        identity = analysis["firmware_profile"]["identity"]
+        analysis["cve_matches"] = match_kernel_cves(versions, feed) + match_device_cves(identity, feed)
+        if analysis["cve_matches"]:
+            analysis["cve_assessment"] = "candidate matches require vendor review"
+        elif not versions and not identity.get("release"):
+            analysis["cve_assessment"] = "not assessed: insufficient component identity"
+        else:
+            analysis["cve_assessment"] = "no applicable matches found in the supplied feed"
     return report
 
 
@@ -88,5 +100,9 @@ def scan_file(
             mapped_size = len(data)
             if mapped_size > max_file_size:
                 raise ValueError(f"Input exceeds configured size limit ({max_file_size} bytes)")
-            return _analyze_buffer(data, name=source.name, size=mapped_size,
+            report = _analyze_buffer(data, name=source.name, size=mapped_size,
                                    max_strings=max_strings, cve_feed=cve_feed)
+        profile = report["analysis"]["firmware_profile"]
+        if profile["outer_format"] == "ZIP header marker":
+            inspect_zip(source, profile)
+        return report
