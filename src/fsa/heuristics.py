@@ -1,7 +1,10 @@
-"""Conservative heuristics over printable strings; never treats hits as proof."""
+"""Conservative heuristics over printable strings; hits are not proof."""
 import re
 
-PRINTABLE_RE = re.compile(rb"[\x20-\x7e]{6,}")
+# Bound individual strings so a firmware image containing one enormous ASCII
+# run cannot create a similarly enormous Python string during triage.
+MAX_STRING_BYTES = 1024
+PRINTABLE_RE = re.compile(rb"[\x20-\x7e]{6,1024}")
 PATTERNS = [
     ("possible_hardcoded_password", re.compile(r"(?i)\b(password|passwd|pwd)\s*[:=]\s*['\"]?[^ \r\n'\"]{4,}")),
     ("possible_private_key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")),
@@ -12,7 +15,7 @@ PATTERNS = [
 KERNEL_RE = re.compile(r"\bLinux version\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?[^\s]*)")
 
 
-def extract_strings(data: bytes, limit: int = 20000) -> list[str]:
+def extract_strings(data, limit: int = 20000) -> list[str]:
     if limit < 0:
         raise ValueError("limit must be zero or greater")
     if limit == 0:
