@@ -28,6 +28,7 @@ def describe(report):
         ("Firmware format", profile["outer_format"] if "packaged_firmware" in report else None), ("Update directory entries", len(profile["components"])
          if profile.get("directory_bytes") else None),
         ("Firmware member", report.get("packaged_firmware", {}).get("path")),
+        ("Device class", identity.get("device_class")), ("Firmware publisher", identity.get("publisher")),
         ("Vendor", identity.get("vendor")), ("Architecture", identity.get("architecture")),
         ("Board / model ID", identity.get("board")), ("Supported devices", ", ".join(identity.get("supported_devices", []))),
         ("Operating system", identity.get("os_family") or identity.get("os_hint")),
@@ -141,7 +142,7 @@ class Inspector:
     def choose(self):
         from tkinter import filedialog
         path = filedialog.askopenfilename(title="Open firmware",filetypes=[
-            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz")),("All files","*")])
+            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz","*.hex","*.fd","*.rom","*.cap","*.trx","*.chk","*.itb")),("All files","*")])
         if path:
             self.start(path)
 

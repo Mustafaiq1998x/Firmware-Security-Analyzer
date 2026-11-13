@@ -1,0 +1,73 @@
+{
+  "94b59e331bad39a4a0b9d6336ab41832f7700252e5088bcaef65bdc9f62b37a2": {
+    "device_class": "3D printer",
+    "publisher": "Prusa Research",
+    "supported_devices": [
+      "Original Prusa i3 MK3"
+    ],
+    "release": "3.14.1",
+    "source": "https://github.com/prusa3d/Prusa-Firmware/releases/tag/v3.14.1"
+  },
+  "d0eb58187ef3a27948b2815075a05618225a37803b5c4506fe5879e0231d6207": {
+    "device_class": "RGB lighting controller",
+    "publisher": "WLED project",
+    "supported_devices": [
+      "WLED ESP02 build"
+    ],
+    "release": "16.0.1",
+    "source": "https://github.com/wled/WLED/releases/tag/v16.0.1"
+  },
+  "7639517d60ae10b41561874d12c5d09900cee71fb83df8572652213c6ba44359": {
+    "device_class": "Virtual platform firmware",
+    "publisher": "EDK II",
+    "supported_devices": [
+      "OVMF"
+    ],
+    "release": "2020.11-2+deb11u2",
+    "source": "https://deb.debian.org/debian/pool/main/e/edk2/ovmf_2020.11-2+deb11u2_all.deb"
+  },
+  "17460f423c633516d6ffa2bda76878540bbe6bb29ee1b3d7ed04d0fd54bc3535": {
+    "device_class": "IP camera",
+    "publisher": "OpenIPC",
+    "supported_devices": [
+      "SSC335 NOR Lite build"
+    ],
+    "source": "https://github.com/OpenIPC/firmware/releases/download/latest/openipc.ssc335-nor-lite-split.tgz"
+  },
+  "e34590fcb616b1d56246f1b1cc877df6d082de0efed3672b3aca822db7b51362": {
+    "device_class": "Satellite receiver",
+    "publisher": "MediaStar",
+    "supported_devices": [
+      "MS-15000 Forever BlackMenu"
+    ],
+    "release": "3.58",
+    "source": "https://ms-download.com/file/ms-15000forever-blackmenu-ver358-2026-9-9/"
+  },
+  "dce44b9d2df965de6975b405a6ed3822c19bf054f5425400483d33bee061e60b": {
+    "device_class": "Soundbar",
+    "publisher": "JBL",
+    "supported_devices": [
+      "JBL Bar 5.1 Surround"
+    ],
+    "release": "20.43.51.00",
+    "source": "https://harman.widen.net/s/ffqblprkgr/firmware_update-jbl_bar_5.1_surround_version_20.43.51.00"
+  },
+  "627ebe170faefb1b22a2ee699db3579ac01eb36f85ee5a86279bc49373b447a3": {
+    "device_class": "Soundbar",
+    "publisher": "JBL",
+    "supported_devices": [
+      "JBL Bar 5.1 Surround"
+    ],
+    "release": "20.43.51.00",
+    "source": "https://harman.widen.net/s/ffqblprkgr/firmware_update-jbl_bar_5.1_surround_version_20.43.51.00"
+  },
+  "fe200d47179276e52e24a9bf826a567ea202ae800cd1dbcaaeba472e497ab5e9": {
+    "device_class": "Scanner",
+    "publisher": "Epson",
+    "supported_devices": [
+      "Epson Perfection 2480 PHOTO",
+      "Epson Perfection 2580 PHOTO"
+    ],
+    "source": "https://distfiles.gentoo.org/distfiles/00/iscan-plugin-gt-f500-1.0.0-1.c2.i386.rpm"
+  }
+}

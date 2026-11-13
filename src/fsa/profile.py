@@ -4,7 +4,7 @@ import re
 import struct
 import zlib
 
-from . import hikvision, tplink, tplink_classic, router as router_formats
+from . import device_formats, hikvision, tplink, tplink_classic, router as router_formats
 
 
 def _crc(data, start, end):
@@ -117,6 +117,9 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
+    device = device_formats.inspect(data)
+    if device:
+        return device
     trx = router_formats.inspect(data)
     if trx:
         trx["embedded_filesystems"] = list(_squashfs(data))

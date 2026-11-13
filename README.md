@@ -80,3 +80,5 @@ Other models using a recognized layout can expose their own header fields. Legac
 [Full router compatibility results by image and SHA-256](docs/ROUTER_COMPATIBILITY.md)
 
 [Multi-vendor router coverage and stock firmware test results](docs/MULTIVENDOR.md)
+
+[Camera, recorder, satellite, system, Android, audio, lighting and printer firmware coverage](docs/DEVICE_FIRMWARE.md)

@@ -66,6 +66,10 @@ def write_html(report: dict, path: str | Path) -> None:
         ("Encryption evidence", encryption.get("evidence", "Unavailable")),
         ("CVE assessment", firmware.get("cve_assessment", "Unavailable")),
     ]
+    if identity.get("device_class"):
+        detail_rows.append(("Device class", identity["device_class"]))
+    if identity.get("publisher"):
+        detail_rows.append(("Firmware publisher", identity["publisher"]))
     if "packaged_firmware" in report:
         detail_rows.append(("Firmware member", firmware.get("path", "")))
     if inventory.get("status") == "completed":
