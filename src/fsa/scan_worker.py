@@ -11,7 +11,7 @@ import time
 from .analyzer import scan_file
 from .extraction import safe_extract_archive
 from .unpack import unpack_image
-from . import hikvision, tplink, tplink_classic
+from . import hikvision, tplink, tplink_classic, router
 
 MEMORY_BYTES = 768 * 1024 * 1024
 MAX_SECONDS = 120
@@ -79,15 +79,15 @@ def _analyze(source, workspace, max_bytes, inspect_archive, feed=None, desktop=F
                     report["archive_inspection"] = safe_extract_archive(source, unpacked)
                 manifest = report["archive_inspection"]
                 candidates = [e for e in manifest.get("entries", []) if e["status"] == "extracted"
-                              and Path(e["path"]).suffix.lower() in {".dav", ".bin", ".img"}]
+                              and Path(e["path"]).suffix.lower() in {".dav", ".bin", ".img", ".trx", ".chk", ".itb"}]
                 if manifest["format"] == "zip" and len(candidates) == 1:
                     member = candidates[0]
                     if member["size_bytes"] <= max_bytes:
                         inner = scan_file(unpacked / member["path"], cve_feed=feed, max_file_size=max_bytes)
                         analysis = inner["analysis"]
-                        supported_formats = {hikvision.FORMAT, tplink.FORMAT, tplink.FACTORY, tplink_classic.FORMAT}
+                        supported_formats = {hikvision.FORMAT, tplink.FORMAT, tplink.FACTORY, tplink_classic.FORMAT, router.CHK, router.TRX, router.SEAMA}
                         profile = analysis["firmware_profile"]
-                        if profile["outer_format"] in supported_formats or profile["identity"].get("distribution") == "OpenWrt":
+                        if profile["outer_format"] in supported_formats or profile["identity"].get("distribution") == "OpenWrt" or "published_image" in profile["identity"].get("evidence", {}):
                             report["packaged_firmware"] = {**analysis, "path": member["path"],
                                                            "sha256": inner["input"]["sha256"]}
             except (ValueError, OSError) as exc:

@@ -4,7 +4,7 @@ import re
 import struct
 import zlib
 
-from . import hikvision, tplink, tplink_classic
+from . import hikvision, tplink, tplink_classic, router as router_formats
 
 
 def _crc(data, start, end):
@@ -117,7 +117,15 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
+    trx = router_formats.inspect(data)
+    if trx:
+        trx["embedded_filesystems"] = list(_squashfs(data))
+        return trx
     metadata = _openwrt(data)
+    seama = router_formats.inspect_seama(data, metadata)
+    if seama:
+        seama["embedded_filesystems"] = list(_squashfs(data))
+        return seama
     router = tplink.inspect(data, versions) or tplink_classic.inspect(data, versions, metadata)
     if router:
         router["embedded_filesystems"] = list(_squashfs(data))

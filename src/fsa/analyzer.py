@@ -8,6 +8,7 @@ import tarfile
 from pathlib import Path
 
 from .cve import load_feed, match_device_cves, match_kernel_cves
+from .router import identify
 from .profile import inspect_profile, inspect_zip
 from .entropy import sample_entropy
 from .heuristics import extract_strings, find_kernel_versions, inspect_strings
@@ -56,6 +57,7 @@ def _analyze_buffer(data, *, name: str, size: int, max_strings: int,
             }
     analysis = report["analysis"]
     analysis["firmware_profile"] = inspect_profile(data, analysis.get("container_header"), versions)
+    identify(analysis["firmware_profile"], report["input"]["sha256"])
     analysis["cve_assessment"] = "not assessed: no feed"
     if cve_feed:
         feed = load_feed(cve_feed)

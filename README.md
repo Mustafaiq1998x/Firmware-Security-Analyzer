@@ -78,3 +78,5 @@ Recognition uses firmware bytes and partition bounds, so renaming a file does no
 Other models using a recognized layout can expose their own header fields. Legacy hardware IDs without a verified mapping remain numeric. Coverage depends on hardware revision, image type and header variant. These tests do not establish coverage of the complete TP-Link catalog.
 
 [Full router compatibility results by image and SHA-256](docs/ROUTER_COMPATIBILITY.md)
+
+[Multi-vendor router coverage and stock firmware test results](docs/MULTIVENDOR.md)
