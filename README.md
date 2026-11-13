@@ -64,3 +64,15 @@ Look for the exact asset name and SHA-256 in its [GitHub release notes](https://
 [Methodology](docs/METHODOLOGY.md) · [Testing](docs/TESTING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Reference tools](docs/REFERENCE_TOOLS.md)
 
 Browse related GitHub topics: [firmware-analysis](https://github.com/topics/firmware-analysis) · [embedded-linux](https://github.com/topics/embedded-linux) · [static-analysis](https://github.com/topics/static-analysis) · [iot-security](https://github.com/topics/iot-security)
+
+### Tested TP-Link router images
+
+Recognition uses firmware bytes and partition bounds, so renaming a file does not change its identity.
+
+| Image tested | Container | Identification verified |
+| --- | --- | --- |
+| Archer AX10 1.3.11 build 20250325 | Cloud SafeLoader | Device support list, board, ARMv7, Linux 4.1.52 |
+| Archer C7 v5 OpenWrt 24.10.0 factory | Factory SafeLoader | C7 v5 support list, MIPS, OpenWrt Linux 6.6.73 |
+| TL-WR841N(UN) v8 170210 | Legacy TP-Link v1 with bootloader and nested header | Hardware ID 0x08410008, firmware 3.16.9, MIPS32 Release 2, Linux 2.6.31 |
+
+Other models using a recognized layout can expose their own header fields. Legacy hardware IDs without a verified mapping remain numeric. Coverage depends on hardware revision, image type and header variant. These tests do not establish coverage of the complete TP-Link catalog.

@@ -4,7 +4,7 @@ import re
 import struct
 import zlib
 
-from . import hikvision, tplink
+from . import hikvision, tplink, tplink_classic
 
 
 def _crc(data, start, end):
@@ -96,10 +96,28 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
-    cloud = tplink.inspect(data, versions)
-    if cloud:
-        cloud["embedded_filesystems"] = list(_squashfs(data))
-        return cloud
+    router = tplink.inspect(data, versions) or tplink_classic.inspect(data, versions)
+    if router:
+        router["embedded_filesystems"] = list(_squashfs(data))
+        for part in router["components"]:
+            if part["name"] != "os-image":
+                continue
+            start = part["offset"]
+            header = _uimage(memoryview(data)[start:start + part["size_bytes"]])
+            if header:
+                identity = router["identity"]
+                identity["evidence"]["uimage_header_offset"] = start
+                if header["os"]:
+                    identity["os_family"] = header["os"]
+                architecture = {2: "ARM", 5: "MIPS", 22: "ARM64"}.get(data[start + 29])
+                if architecture:
+                    identity["architecture"] = architecture
+                match = re.fullmatch(r"\w+ OpenWrt Linux-([0-9]+(?:\.[0-9]+){2})", header["name"] or "")
+                if match:
+                    identity["distribution"] = "OpenWrt"
+                    if match[1] not in versions:
+                        versions.append(match[1])
+        return router
     index = hikvision.read_index(data)
     if index:
         identity = {"vendor": "Hikvision", "evidence": {"source": "SWKH update directory", "offset": 0}}

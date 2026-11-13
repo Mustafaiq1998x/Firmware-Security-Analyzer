@@ -3,6 +3,7 @@ import lzma
 import re
 
 FORMAT = "TP-Link SafeLoader (Cloud)"
+FACTORY = "TP-Link SafeLoader (factory)"
 BASE = 0x1014
 TABLE_SIZE = 0x800
 ROW = re.compile(rb"fwup-ptn ([a-zA-Z0-9_-]{1,48}) base 0x([0-9a-fA-F]{1,8}) size 0x([0-9a-fA-F]{1,8})")
@@ -55,8 +56,7 @@ def _broadcom(data, part, identity, versions):
 
 
 def inspect(data, versions):
-    if (len(data) < BASE + TABLE_SIZE or data[20:34] != b"fw-type:Cloud\n"
-            or int.from_bytes(data[:4], "big") != len(data)):
+    if len(data) < BASE + TABLE_SIZE or int.from_bytes(data[:4], "big") != len(data):
         return None
     directory = data[BASE:BASE+TABLE_SIZE]
     end = directory.find(b"\0")
@@ -78,7 +78,7 @@ def inspect(data, versions):
     if (not {"os-image", "support-list", "soft-version"} <= parts.keys() or
             any(a["offset"]+a["size_bytes"] > b["offset"] for a,b in zip(ordered, ordered[1:]))):
         return None
-    identity = {"vendor":"TP-Link", "evidence":{"source":"Cloud header and bounded fwup-ptn directory",
+    identity = {"vendor":"TP-Link", "evidence":{"source":"Declared length and bounded fwup-ptn directory",
                                                 "offset":BASE}}
     support = _metadata(data, parts["support-list"])
     if support.startswith(b"SupportList:"):
@@ -92,7 +92,7 @@ def inspect(data, versions):
         identity["build"] = soft[2].decode()+" rel."+soft[3].decode()
         identity["evidence"]["soft_version_offset"] = parts["soft-version"]["offset"]
     _broadcom(data, parts["os-image"], identity, versions)
-    return {"outer_format":FORMAT, "identity":identity, "components":ordered,
+    return {"outer_format":FORMAT if data[20:34] == b"fw-type:Cloud\n" else FACTORY, "identity":identity, "components":ordered,
             "directory_bytes":TABLE_SIZE, "partition_count":len(parts),
             "encryption":{"status":"not established for the complete image","algorithm":None,
                           "evidence":"Readable update directory; encryption of individual partitions is not assessed."}}
