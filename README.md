@@ -76,3 +76,5 @@ Recognition uses firmware bytes and partition bounds, so renaming a file does no
 | TL-WR841N(UN) v8 170210 | Legacy TP-Link v1 with bootloader and nested header | Hardware ID 0x08410008, firmware 3.16.9, MIPS32 Release 2, Linux 2.6.31 |
 
 Other models using a recognized layout can expose their own header fields. Legacy hardware IDs without a verified mapping remain numeric. Coverage depends on hardware revision, image type and header variant. These tests do not establish coverage of the complete TP-Link catalog.
+
+[Full router compatibility results by image and SHA-256](docs/ROUTER_COMPATIBILITY.md)

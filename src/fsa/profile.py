@@ -74,6 +74,27 @@ def _uimage(data):
             "evidence": "Header and payload CRC32 at offset 0"}
 
 
+def _mips_elf_loader(data, limit):
+    """Check the ELF32 big-endian MIPS loader preceding a sysupgrade payload."""
+    if limit < 52 or data[:7] != b"\x7fELF\x01\x02\x01":
+        return False
+    kind, machine, version, entry, phoff = struct.unpack_from(">HHIII", data, 16)
+    header_size, stride, count = struct.unpack_from(">HHH", data, 40)
+    if ((kind, machine, version, header_size, stride) != (2, 8, 1, 52, 32)
+            or not 1 <= count <= 64 or not 52 <= phoff <= limit - stride * count):
+        return False
+    contains_entry = False
+    for index in range(count):
+        kind, pos, address, _, size, memory, _, _ = struct.unpack_from(">8I", data, phoff + index * stride)
+        if pos + size > limit:
+            return False
+        if kind == 1:
+            if size > memory:
+                return False
+            contains_entry |= address <= entry < address + size
+    return contains_entry
+
+
 def _squashfs(data):
     start = 0
     for _ in range(256):
@@ -96,7 +117,8 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
-    router = tplink.inspect(data, versions) or tplink_classic.inspect(data, versions)
+    metadata = _openwrt(data)
+    router = tplink.inspect(data, versions) or tplink_classic.inspect(data, versions, metadata)
     if router:
         router["embedded_filesystems"] = list(_squashfs(data))
         for part in router["components"]:
@@ -144,9 +166,13 @@ def inspect_profile(data, tar_header, versions):
                 "directory_bytes": index["directory_bytes"], "trailing_bytes": index["trailing_bytes"],
                 "encryption": {"status": "undetermined", "algorithm": None,
                                "evidence": "SWKH directory encoding does not establish payload encryption."}}
-    identity = _openwrt(data) or {}
+    identity = metadata or {}
     uimage = _uimage(data)
-    components = ([uimage] if uimage else []) + list(_squashfs(data))
+    filesystems = list(_squashfs(data))
+    trimmed = tplink_classic.inspect_sysupgrade(data, metadata, versions, filesystems)
+    if trimmed:
+        return trimmed
+    components = ([uimage] if uimage else []) + filesystems
     if uimage and uimage["os"]:
         identity.setdefault("os_family", uimage["os"])
         identity.setdefault("evidence", {"source":"U-Boot OS field", "offset":28})
@@ -167,6 +193,10 @@ def inspect_profile(data, tar_header, versions):
         outer = "ZIP header marker"
     elif data[:3] == b"\x1f\x8b\x08" and len(data) >= 18 and not data[3] & 0xe0:
         outer = "gzip header"
+    if outer == "unknown" and metadata and _mips_elf_loader(data, metadata["evidence"]["offset"]):
+        outer = "OpenWrt sysupgrade (MIPS ELF loader)"
+        identity["architecture"] = "MIPS (32-bit big-endian ELF)"
+        identity["evidence"]["elf_header_offset"] = 0
     crypto = {"status":"undetermined", "algorithm":None,
               "evidence":"No recognized encryption header. Compressed or high-entropy bytes alone are inconclusive."}
     if len(data) >= 592 and data[:8] == b"LUKS\xba\xbe\x00\x01":

@@ -27,6 +27,7 @@ def describe(report):
         ("Image", report["input"]["name"]), ("Outer format", report["analysis"]["firmware_profile"]["outer_format"]),
         ("Firmware format", profile["outer_format"] if "packaged_firmware" in report else None), ("Update directory entries", len(profile["components"])
          if profile.get("directory_bytes") else None),
+        ("Firmware member", report.get("packaged_firmware", {}).get("path")),
         ("Vendor", identity.get("vendor")), ("Architecture", identity.get("architecture")),
         ("Board / model ID", identity.get("board")), ("Supported devices", ", ".join(identity.get("supported_devices", []))),
         ("Operating system", identity.get("os_family") or identity.get("os_hint")),
@@ -197,9 +198,9 @@ class Inspector:
                   "Components":[(c["format"],c.get("name"),hex(c["offset"]),c["size_bytes"],c["compression"],c.get("inode_count"))
                                 for c in firmware["firmware_profile"]["components"]],
                   "Files":[(e["path"],e["size_bytes"],e.get("sha256")) for e in contents.get("entries",[])],
-                  "Evidence":[(f["rule"],f["confidence"],v) for f in analysis["heuristic_findings"] for v in f["evidence"]],
+                  "Evidence":[(f["rule"],f["confidence"],v) for f in firmware.get("heuristic_findings", analysis["heuristic_findings"]) for v in f["evidence"]],
                   "CVEs":[(c["cve"],c["detected_version"],c["status"]) for c in firmware["cve_matches"]],
-                  "Signatures":[(s["name"],hex(s["offset"]),s["magic_hex"]) for s in analysis["signatures"]]}
+                  "Signatures":[(s["name"],hex(s["offset"]),s["magic_hex"]) for s in firmware.get("signatures", analysis["signatures"])]}
         for name, rows in groups.items():
             for index, row in enumerate(rows):
                 self.tables[name].insert("", "end",tags=("alternate",) if index % 2 else (),values=tuple("Unknown" if v is None or v=="" else v for v in row))
