@@ -69,7 +69,7 @@ def _analyze(source, workspace, max_bytes, inspect_archive, feed=None, desktop=F
             raise ValueError("Archive inspection with a memory limit requires Linux or Windows")
         report = scan_file(source, cve_feed=feed, max_file_size=max_bytes)
         profile = report["analysis"]["firmware_profile"]
-        supported = profile["outer_format"] in {"ZIP", "ZIP header marker", "TAR"} or profile["components"]
+        supported = profile["outer_format"] in {"ZIP", "ZIP header marker", "TAR", "gzip-compressed TAR"} or profile["components"]
         if inspect_archive or (desktop and supported):
             try:
                 unpacked = Path(workspace) / "files"
@@ -79,7 +79,7 @@ def _analyze(source, workspace, max_bytes, inspect_archive, feed=None, desktop=F
                     report["archive_inspection"] = safe_extract_archive(source, unpacked)
                 manifest = report["archive_inspection"]
                 candidates = [e for e in manifest.get("entries", []) if e["status"] == "extracted"
-                              and Path(e["path"]).suffix.lower() in {".dav", ".bin", ".img", ".trx", ".chk", ".itb", ".hex", ".fd", ".rom", ".cap"}]
+                              and Path(e["path"]).suffix.lower() in {".dav", ".bin", ".img", ".trx", ".chk", ".itb", ".hex", ".fd", ".rom", ".cap", ".uf2", ".cab", ".bbf"}]
                 if manifest["format"] == "zip" and len(candidates) == 1:
                     member = candidates[0]
                     if member["size_bytes"] <= max_bytes:

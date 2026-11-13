@@ -1,14 +1,18 @@
 """Read bounded Android boot, UEFI firmware-volume and Intel HEX structures."""
 import binascii
+import hashlib
 import struct
 import json
 from functools import lru_cache
 from importlib.resources import files
 
+from . import package_formats
+
 ANDROID = "Android boot image"
 UEFI = "UEFI firmware volumes"
 HEX = "Intel HEX"
-FORMATS = {ANDROID, UEFI, HEX}
+BBF = "Prusa Buddy BBF v2"
+FORMATS = {BBF, ANDROID, UEFI, HEX, package_formats.UF2, package_formats.CAB}
 
 
 def _part(name, kind, offset, size):
@@ -114,14 +118,45 @@ def _hex(data):
                                 "records": records})
 
 
+def _bbf(data):
+    if len(data) < 576 or data[112] != 2 or any(data[115:576]):
+        return None
+    size = int.from_bytes(data[96:100], "little")
+    end = 576 + size
+    if not size or end > len(data) or hashlib.sha256(memoryview(data)[96:end]).digest() != data[64:96]:
+        return None
+    parts = [_part("firmware", "BBF firmware code", 576, size)]
+    pos = end
+    while pos < len(data):
+        if pos + 5 > len(data) or len(parts) >= 128:
+            return None
+        kind, length = struct.unpack_from("<BI", data, pos)
+        pos += 5
+        if not kind or not length or length > len(data) - pos:
+            return None
+        parts.append(_part(f"record-{kind}", "BBF resource record", pos, length))
+        pos += length
+    identity = {"device_class": "3D printer", "publisher": "Prusa Research",
+                "release": ".".join(map(str, data[100:103]))}
+    model = {2: "MINI family", 3: "XL family"}.get(data[111])
+    if model:
+        identity["supported_devices"] = [model]
+    return _report(BBF, parts, {"source": "BBF v2 header and firmware-region SHA-256",
+                                "printer_type": data[111], "build": int.from_bytes(data[103:105], "little")}, **identity)
+
+
 def inspect(data):
+    if data[:4] == b"UF2\n":
+        return package_formats.uf2(data)
+    if data[:4] == b"MSCF":
+        return package_formats.cabinet(data)
     if data[:8] == b"ANDROID!":
         return _android(data)
     if data[40:44] == b"_FVH":
         return _uefi(data)
     if data[:1] == b":":
         return _hex(data)
-    return None
+    return _bbf(data)
 
 
 @lru_cache(maxsize=1)

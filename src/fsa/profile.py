@@ -2,9 +2,10 @@
 import json
 import re
 import struct
+import tarfile
 import zlib
 
-from . import device_formats, hikvision, tplink, tplink_classic, router as router_formats
+from . import package_formats, device_formats, hikvision, tplink, tplink_classic, router as router_formats
 
 
 def _crc(data, start, end):
@@ -204,6 +205,13 @@ def inspect_profile(data, tar_header, versions):
         outer = "ZIP header marker"
     elif data[:3] == b"\x1f\x8b\x08" and len(data) >= 18 and not data[3] & 0xe0:
         outer = "gzip header"
+        try:
+            header = zlib.decompressobj(31).decompress(data[:65536], 512)
+            if len(header) == 512 and header[257:262] == b"ustar":
+                tarfile.TarInfo.frombuf(header, "utf-8", "surrogateescape")
+                outer = "gzip-compressed TAR"
+        except (zlib.error, tarfile.HeaderError):
+            pass
     if outer == "unknown" and metadata and _mips_elf_loader(data, metadata["evidence"]["offset"]):
         outer = "OpenWrt sysupgrade (MIPS ELF loader)"
         identity["architecture"] = "MIPS (32-bit big-endian ELF)"
@@ -232,6 +240,9 @@ def inspect_zip(path, profile):
                                     limits.max_central_directory_bytes)
         with zipfile.ZipFile(path) as archive:
             entries = archive.infolist()
+            audio = package_formats.rockbox(archive, entries)
+            if audio:
+                profile["identity"].update(audio)
             encrypted = sum(bool(e.flag_bits & 1) for e in entries)
             regular = sum(not e.is_dir() and not e.external_attr & 0x10 and
                           stat.S_IFMT(e.external_attr >> 16) in (0, stat.S_IFREG) for e in entries)

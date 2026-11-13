@@ -142,7 +142,7 @@ class Inspector:
     def choose(self):
         from tkinter import filedialog
         path = filedialog.askopenfilename(title="Open firmware",filetypes=[
-            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz","*.hex","*.fd","*.rom","*.cap","*.trx","*.chk","*.itb")),("All files","*")])
+            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz","*.hex","*.fd","*.rom","*.cap","*.trx","*.chk","*.itb","*.cab","*.uf2","*.bbf")),("All files","*")])
         if path:
             self.start(path)
 

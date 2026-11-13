@@ -82,3 +82,5 @@ Other models using a recognized layout can expose their own header fields. Legac
 [Multi-vendor router coverage and stock firmware test results](docs/MULTIVENDOR.md)
 
 [Camera, recorder, satellite, system, Android, audio, lighting and printer firmware coverage](docs/DEVICE_FIRMWARE.md)
+
+[Randomized multi-device validation, holdout results and per-image records](docs/randomized/README.md)

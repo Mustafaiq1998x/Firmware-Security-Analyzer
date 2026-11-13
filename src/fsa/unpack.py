@@ -2,7 +2,7 @@
 from hashlib import sha256
 from pathlib import Path
 
-from . import tplink, tplink_classic
+from . import tplink, tplink_classic, package_formats
 from .hikvision import FORMAT
 from .extraction import ExtractionError, ExtractionLimits, safe_extract_archive
 
@@ -10,7 +10,7 @@ from .extraction import ExtractionError, ExtractionLimits, safe_extract_archive
 def unpack_image(source, destination, report):
     source, destination = Path(source), Path(destination)
     profile = report["analysis"]["firmware_profile"]
-    if profile["outer_format"] in {"TAR", "ZIP", "ZIP header marker", "gzip header"}:
+    if profile["outer_format"] in {"gzip-compressed TAR", "TAR", "ZIP", "ZIP header marker", "gzip header"}:
         return safe_extract_archive(source, destination)
     parts = profile["components"]
     if not parts:
@@ -34,6 +34,9 @@ def unpack_image(source, destination, report):
                 if profile["outer_format"] in (FORMAT, tplink.FORMAT, tplink.FACTORY, tplink_classic.FORMAT, tplink_classic.FORMAT_V3):
                     # Use a fixed data suffix even when the stored entry names an executable.
                     suffix = part["name"] + ".bin"
+                stride = part.get("block_payload_bytes") if profile["outer_format"] == package_formats.UF2 else None
+                if stride:
+                    suffix = part["name"] + ".bin"
                 name = f"{part['offset']:08x}-{suffix}"
                 path = destination / name
                 src.seek(part["offset"])
@@ -41,14 +44,18 @@ def unpack_image(source, destination, report):
                 digest = sha256()
                 with path.open("xb") as dst:
                     while remaining:
-                        chunk = src.read(min(1024 * 1024, remaining))
+                        chunk = src.read(min(stride or 1024 * 1024, remaining))
                         if not chunk:
                             raise ExtractionError("Truncated component")
                         dst.write(chunk)
                         digest.update(chunk)
                         remaining -= len(chunk)
+                        if stride and remaining:
+                            src.seek(512 - stride, 1)
                 entries.append({"path": name, "size_bytes": part["size_bytes"], "offset": part["offset"],
                                 "status": "extracted", "sha256": digest.hexdigest()})
+                if stride:
+                    entries[-1].update(block_payload_bytes=stride, block_stride=512)
         except BaseException:
             # This private directory was created by this invocation.
             import shutil
