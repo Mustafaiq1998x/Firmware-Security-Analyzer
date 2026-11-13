@@ -4,7 +4,7 @@ import re
 import struct
 import zlib
 
-from . import hikvision
+from . import hikvision, tplink
 
 
 def _crc(data, start, end):
@@ -96,6 +96,10 @@ def _squashfs(data):
 
 
 def inspect_profile(data, tar_header, versions):
+    cloud = tplink.inspect(data, versions)
+    if cloud:
+        cloud["embedded_filesystems"] = list(_squashfs(data))
+        return cloud
     index = hikvision.read_index(data)
     if index:
         identity = {"vendor": "Hikvision", "evidence": {"source": "SWKH update directory", "offset": 0}}
