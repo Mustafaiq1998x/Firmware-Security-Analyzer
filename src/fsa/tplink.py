@@ -3,6 +3,7 @@ import lzma
 import re
 
 FORMAT = "TP-Link SafeLoader (Cloud)"
+FACTORY = "TP-Link SafeLoader (factory)"
 BASE = 0x1014
 TABLE_SIZE = 0x800
 ROW = re.compile(rb"fwup-ptn ([a-zA-Z0-9_-]{1,48}) base 0x([0-9a-fA-F]{1,8}) size 0x([0-9a-fA-F]{1,8})")
@@ -55,8 +56,9 @@ def _broadcom(data, part, identity, versions):
 
 
 def inspect(data, versions):
-    if (len(data) < BASE + TABLE_SIZE or data[20:34] != b"fw-type:Cloud\n"
-            or int.from_bytes(data[:4], "big") != len(data)):
+    declared = int.from_bytes(data[:4], "big")
+    padded = len(data) == declared + 128 and data[-128:] == bytes(128)
+    if declared < BASE + TABLE_SIZE or (declared != len(data) and not padded):
         return None
     directory = data[BASE:BASE+TABLE_SIZE]
     end = directory.find(b"\0")
@@ -70,7 +72,7 @@ def inspect(data, versions):
         name = match[1].decode()
         relative, length = int(match[2], 16), int(match[3], 16)
         offset = BASE + relative
-        if (relative < TABLE_SIZE or not length or offset+length > len(data) or name in parts):
+        if (relative < TABLE_SIZE or not length or offset+length > declared or name in parts):
             return None
         parts[name] = {"name":name, "format":"SafeLoader partition", "offset":offset,
                        "size_bytes":length, "compression":None, "scope":"update partition"}
@@ -78,13 +80,19 @@ def inspect(data, versions):
     if (not {"os-image", "support-list", "soft-version"} <= parts.keys() or
             any(a["offset"]+a["size_bytes"] > b["offset"] for a,b in zip(ordered, ordered[1:]))):
         return None
-    identity = {"vendor":"TP-Link", "evidence":{"source":"Cloud header and bounded fwup-ptn directory",
+    identity = {"vendor":"TP-Link", "evidence":{"source":"Declared length and bounded fwup-ptn directory",
                                                 "offset":BASE}}
     support = _metadata(data, parts["support-list"])
     if support.startswith(b"SupportList:"):
-        devices = re.findall(rb"\{product_name:([\w .+-]{1,48}),product_ver:([\d.]{1,16}),special_id:[a-fA-F0-9]{8}\}", support)
-        if devices:
-            identity["supported_devices"] = list(dict.fromkeys(n.decode()+" v"+v.decode() for n,v in devices))
+        devices = re.findall(rb"\{product_name:([\w .+-]{1,48}),product_ver:([\d.]{1,16}),special_id:[a-fA-F0-9]{8}(?:,product_region:([A-Z]{2,4}))?\}", support)
+        names = [n.decode()+" v"+v.decode() + (" " + region.decode() if region else "") for n,v,region in devices]
+        for line in support.splitlines():
+            match = re.fullmatch(rb"([A-Za-z0-9-]{2,48})\((?i:TP-Link)\|([A-Za-z]{2,4})\|[A-Za-z0-9|_-]{1,64}\):([0-9.]{1,16})(?: ([A-Z,]{2,20}))?", line)
+            if match:
+                region = (match[4] or match[2]).decode()
+                names.append(match[1].decode() + " v" + match[3].decode() + " " + region)
+        if names:
+            identity["supported_devices"] = list(dict.fromkeys(names))
             identity["evidence"]["support_list_offset"] = parts["support-list"]["offset"]
     soft = re.match(rb"soft_ver:([\d.]{1,20}) Build (\d{8}) Rel\. (\d{1,8})(?:\r?\n|\0)", _metadata(data, parts["soft-version"]))
     if soft:
@@ -92,7 +100,7 @@ def inspect(data, versions):
         identity["build"] = soft[2].decode()+" rel."+soft[3].decode()
         identity["evidence"]["soft_version_offset"] = parts["soft-version"]["offset"]
     _broadcom(data, parts["os-image"], identity, versions)
-    return {"outer_format":FORMAT, "identity":identity, "components":ordered,
+    return {"outer_format":FORMAT if data[20:34] == b"fw-type:Cloud\n" else FACTORY, "identity":identity, "components":ordered,
             "directory_bytes":TABLE_SIZE, "partition_count":len(parts),
             "encryption":{"status":"not established for the complete image","algorithm":None,
                           "evidence":"Readable update directory; encryption of individual partitions is not assessed."}}
