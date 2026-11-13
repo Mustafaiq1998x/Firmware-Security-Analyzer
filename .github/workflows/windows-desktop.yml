@@ -1,0 +1,60 @@
+name: Windows desktop build
+on:
+  pull_request:
+    paths:
+      - 'src/fsa/**'
+      - 'packaging/windows/**'
+      - 'pyproject.toml'
+      - '.github/workflows/windows-desktop.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/fsa/**'
+      - 'packaging/windows/**'
+      - 'pyproject.toml'
+      - '.github/workflows/windows-desktop.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - run: python -m pip install . pyinstaller==6.22.3
+      - name: Build standalone GUI
+        run: python -m PyInstaller --clean --noconfirm --onefile --windowed --name FSA --icon packaging/windows/fsa.ico --collect-data fsa packaging/windows/launcher.py
+      - name: Run the packaged window and scan worker
+        shell: pwsh
+        run: |
+          $work = New-Item -Type Directory -Path (Join-Path $env:RUNNER_TEMP 'FSA اختبار')
+          Copy-Item dist/FSA.exe $work
+          Copy-Item samples/demo_firmware.bin "$work/sample.bin"
+          Push-Location $work
+          try {
+            $process = Start-Process .\FSA.exe -ArgumentList '--check-build','sample.bin','report.json' -PassThru
+            if (-not $process.WaitForExit(120000)) { $process.Kill($true); throw 'Packaged scan timed out' }
+            if ($process.ExitCode -ne 0) { throw "Exit code $($process.ExitCode)" }
+            $report = Get-Content report.json -Raw | ConvertFrom-Json
+            if ($report.input.sha256 -ne (Get-FileHash sample.bin).Hash) { throw 'Input hash mismatch' }
+            if ($report.analysis.kernel_versions -notcontains '4.9.138') { throw 'Kernel detection failed' }
+            if ((Get-Content report.html -Raw) -notmatch 'Firmware identification') { throw 'HTML export failed' }
+          } finally { Pop-Location }
+          Copy-Item LICENSE dist/LICENSE.txt
+          $hash = (Get-FileHash dist/FSA.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  FSA.exe" | Set-Content -Encoding ascii dist/SHA256SUMS.txt
+          "SHA-256: $hash" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FSA-Windows-x64
+          path: |
+            dist/FSA.exe
+            dist/SHA256SUMS.txt
+            dist/LICENSE.txt
+          if-no-files-found: error
+          retention-days: 30

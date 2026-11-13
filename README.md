@@ -12,6 +12,10 @@ Inspect a firmware image on your own machine. Open a component marker at its byt
 
 ![Native desktop inspector showing a real OpenWrt image](docs/desktop.png)
 
+## Portable Windows build
+
+Open a successful [Windows desktop build](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/actions/workflows/windows-desktop.yml), download **FSA-Windows-x64** under Artifacts, extract the ZIP, and launch **FSA.exe**. GitHub requires sign-in for workflow artifact downloads. The executable bundles Python and Tk. Each archive includes its SHA-256 checksum and license. These are unsigned test builds. Published release packages and their VirusTotal reports are listed separately under Releases.
+
 ## Run your first inspection
 
 Clone the project and enter its directory.
