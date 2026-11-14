@@ -1,6 +1,6 @@
 {
   "tool": "Firmware Security Analyzer",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "input": {
     "name": "demo_firmware.bin",
     "size_bytes": 102,

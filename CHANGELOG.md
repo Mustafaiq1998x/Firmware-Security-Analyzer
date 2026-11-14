@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased — Phase 2 bounded archive extraction
+## 0.2.0 — Desktop inspector and bounded archive extraction
+
+- Added the native desktop inspector, Windows portable build, and JSON and HTML export.
+- Documented device-specific identification evidence and published randomized compatibility results.
 
 - Added non-recursive ZIP and TAR extraction without shell commands or external unpackers.
 - Enforced archive, per-file, aggregate byte, file-count, directory-count, path-depth, compression-ratio, and time limits.
@@ -16,7 +19,6 @@
 - Use read-only memory mapping for firmware scans and cap each extracted printable string at 1 KiB.
 - Distribute entropy samples across the full firmware image instead of sampling only its first MiB.
 - Expand conservative marker coverage for UBI/UBIFS, Android boot/sparse, Zstandard, LZ4, bzip2, CPIO, and TRX.
-- This work remains pending cross-platform CI and review; no release version has been assigned.
 
 ## 0.1.2 — Bilingual dashboard (2026-11-10)
 

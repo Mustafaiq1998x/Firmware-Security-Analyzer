@@ -14,7 +14,9 @@ Inspect a firmware image on your own machine. Open a component marker at its byt
 
 ## Portable Windows build
 
-Open a successful [Windows desktop build](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/actions/workflows/windows-desktop.yml), download **FSA-Windows-x64** under Artifacts, extract the ZIP, and launch **FSA.exe**. GitHub requires sign-in for workflow artifact downloads. The executable bundles Python and Tk. Each archive includes its SHA-256 checksum and license. These are unsigned test builds. Published release packages and their VirusTotal reports are listed separately under Releases.
+Download [FSA.exe for Windows x64](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases/latest/download/FSA.exe) and open it. Python and Tk are included. To verify the unsigned executable, run `Get-FileHash .\FSA.exe -Algorithm SHA256` in PowerShell and compare the result with the FSA.exe entry in **SHA256SUMS.txt** from the same release.
+
+[Source, Python packages and checksums](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases/latest) · [User guide](docs/README.md) · [Randomized firmware results](docs/randomized/README.md)
 
 ## Run your first inspection
 
@@ -64,3 +66,23 @@ Look for the exact asset name and SHA-256 in its [GitHub release notes](https://
 [Methodology](docs/METHODOLOGY.md) · [Testing](docs/TESTING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Reference tools](docs/REFERENCE_TOOLS.md)
 
 Browse related GitHub topics: [firmware-analysis](https://github.com/topics/firmware-analysis) · [embedded-linux](https://github.com/topics/embedded-linux) · [static-analysis](https://github.com/topics/static-analysis) · [iot-security](https://github.com/topics/iot-security)
+
+### Tested TP-Link router images
+
+Recognition uses firmware bytes and partition bounds, so renaming a file does not change its identity.
+
+| Image tested | Container | Identification verified |
+| --- | --- | --- |
+| Archer AX10 1.3.11 build 20250325 | Cloud SafeLoader | Device support list, board, ARMv7, Linux 4.1.52 |
+| Archer C7 v5 OpenWrt 24.10.0 factory | Factory SafeLoader | C7 v5 support list, MIPS, OpenWrt Linux 6.6.73 |
+| TL-WR841N(UN) v8 170210 | Legacy TP-Link v1 with bootloader and nested header | Hardware ID 0x08410008, firmware 3.16.9, MIPS32 Release 2, Linux 2.6.31 |
+
+Other models using a recognized layout can expose their own header fields. Legacy hardware IDs without a verified mapping remain numeric. Coverage depends on hardware revision, image type and header variant. These tests do not establish coverage of the complete TP-Link catalog.
+
+[Full router compatibility results by image and SHA-256](docs/ROUTER_COMPATIBILITY.md)
+
+[Multi-vendor router coverage and stock firmware test results](docs/MULTIVENDOR.md)
+
+[Camera, recorder, satellite, system, Android, audio, lighting and printer firmware coverage](docs/DEVICE_FIRMWARE.md)
+
+[Randomized multi-device validation, holdout results and per-image records](docs/randomized/README.md)

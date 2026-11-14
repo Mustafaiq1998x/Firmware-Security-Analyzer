@@ -30,8 +30,9 @@ def write_html(report: dict, path: str | Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     source = report.get("input", {})
     analysis = report.get("analysis", {})
-    signatures = analysis.get("signatures", [])
-    findings = analysis.get("heuristic_findings", [])
+    firmware = report.get("packaged_firmware", analysis)
+    signatures = firmware.get("signatures", [])
+    findings = firmware.get("heuristic_findings", [])
     evidence = []
     for finding in findings:
         excerpts = "".join(f"<pre>{_text(s)}</pre>" for s in finding.get("evidence", []))
@@ -47,7 +48,6 @@ def write_html(report: dict, path: str | Path) -> None:
         [(c.get("cve", ""), c.get("component", ""), c.get("detected_version", ""), c.get("status", ""))
          for c in report.get("packaged_firmware", analysis).get("cve_matches", [])], "No advisory matches recorded.")
     limitations = "".join(f"<li>{_text(s)}</li>" for s in report.get("limitations", []))
-    firmware = report.get("packaged_firmware", analysis)
     profile = firmware.get("firmware_profile", {})
     identity = profile.get("identity", {})
     encryption = profile.get("encryption", {})
@@ -66,6 +66,12 @@ def write_html(report: dict, path: str | Path) -> None:
         ("Encryption evidence", encryption.get("evidence", "Unavailable")),
         ("CVE assessment", firmware.get("cve_assessment", "Unavailable")),
     ]
+    if identity.get("device_class"):
+        detail_rows.append(("Device class", identity["device_class"]))
+    if identity.get("publisher"):
+        detail_rows.append(("Firmware publisher", identity["publisher"]))
+    if "packaged_firmware" in report:
+        detail_rows.append(("Firmware member", firmware.get("path", "")))
     if inventory.get("status") == "completed":
         scope = "Exported components" if inventory["format"] == "components" else "Extracted regular members"
         detail_rows.append((scope, inventory["summary"]["files"]))

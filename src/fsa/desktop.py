@@ -23,14 +23,18 @@ def describe(report):
     inventory = profile.get("zip_inventory")
     if count is None and inventory:
         count, unit = inventory["regular_members"], "declared regular ZIP members"
-    return [
+    rows = [
         ("Image", report["input"]["name"]), ("Outer format", report["analysis"]["firmware_profile"]["outer_format"]),
-        ("Firmware format", profile["outer_format"]), ("Update directory entries", len(profile["components"])
+        ("Firmware format", profile["outer_format"] if "packaged_firmware" in report else None), ("Update directory entries", len(profile["components"])
          if profile.get("directory_bytes") else None),
+        ("Firmware member", report.get("packaged_firmware", {}).get("path")),
+        ("Device class", identity.get("device_class")), ("Firmware publisher", identity.get("publisher")),
         ("Vendor", identity.get("vendor")), ("Architecture", identity.get("architecture")),
         ("Board / model ID", identity.get("board")), ("Supported devices", ", ".join(identity.get("supported_devices", []))),
         ("Operating system", identity.get("os_family") or identity.get("os_hint")),
         ("Distribution / release", " ".join(filter(None, (identity.get("distribution"), identity.get("release"))))),
+        ("Build", identity.get("build")),
+        ("Embedded filesystems", ", ".join(f"{p['format']} · {p['compression']} · {p['inode_count']} inodes" for p in profile.get("embedded_filesystems", []))),
         ("Target", identity.get("target")), ("Kernel strings / header versions", ", ".join(a["kernel_versions"])),
         ("Identification evidence", json.dumps(identity["evidence"], ensure_ascii=False) if identity.get("evidence") else ""),
         ("Encryption", profile["encryption"]["status"]),
@@ -39,6 +43,12 @@ def describe(report):
         ("File inventory", f"{count} {unit}" if count is not None else archive.get("reason","Not enumerated")),
         ("Size (bytes)", str(report["input"]["size_bytes"])), ("SHA-256", report["input"]["sha256"]),
     ]
+    visible = [(label, value) for label, value in rows if value not in (None, "", "unknown")]
+    if profile["outer_format"] == "unknown":
+        formats = sorted({c["format"] for c in profile["components"]})
+        visible.insert(1, ("Format coverage", "Outer header unrecognized. " +
+                          ("Recognized inside: " + ", ".join(formats) if formats else "No supported component structure found.")))
+    return visible
 
 
 class Inspector:
@@ -132,7 +142,7 @@ class Inspector:
     def choose(self):
         from tkinter import filedialog
         path = filedialog.askopenfilename(title="Open firmware",filetypes=[
-            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz")),("All files","*")])
+            ("Firmware images",("*.bin","*.dav","*.img","*.zip","*.tar","*.gz","*.hex","*.fd","*.rom","*.cap","*.trx","*.chk","*.itb","*.cab","*.uf2","*.bbf")),("All files","*")])
         if path:
             self.start(path)
 
@@ -189,9 +199,9 @@ class Inspector:
                   "Components":[(c["format"],c.get("name"),hex(c["offset"]),c["size_bytes"],c["compression"],c.get("inode_count"))
                                 for c in firmware["firmware_profile"]["components"]],
                   "Files":[(e["path"],e["size_bytes"],e.get("sha256")) for e in contents.get("entries",[])],
-                  "Evidence":[(f["rule"],f["confidence"],v) for f in analysis["heuristic_findings"] for v in f["evidence"]],
+                  "Evidence":[(f["rule"],f["confidence"],v) for f in firmware.get("heuristic_findings", analysis["heuristic_findings"]) for v in f["evidence"]],
                   "CVEs":[(c["cve"],c["detected_version"],c["status"]) for c in firmware["cve_matches"]],
-                  "Signatures":[(s["name"],hex(s["offset"]),s["magic_hex"]) for s in analysis["signatures"]]}
+                  "Signatures":[(s["name"],hex(s["offset"]),s["magic_hex"]) for s in firmware.get("signatures", analysis["signatures"])]}
         for name, rows in groups.items():
             for index, row in enumerate(rows):
                 self.tables[name].insert("", "end",tags=("alternate",) if index % 2 else (),values=tuple("Unknown" if v is None or v=="" else v for v in row))
