@@ -7,7 +7,7 @@ def test_health_and_root_routes():
     health = client.get("/health")
     assert health.status_code == 200
     assert health.json()["status"] == "ok"
-    assert health.json()["version"] == "0.1.2"
+    assert health.json()["version"] == "0.2.0"
     assert health.headers["cache-control"] == "no-store"
     page = client.get("/")
     assert page.status_code == 200

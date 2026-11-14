@@ -14,7 +14,9 @@ Inspect a firmware image on your own machine. Open a component marker at its byt
 
 ## Portable Windows build
 
-Open a successful [Windows desktop build](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/actions/workflows/windows-desktop.yml), download **FSA-Windows-x64** under Artifacts, extract the ZIP, and launch **FSA.exe**. GitHub requires sign-in for workflow artifact downloads. The executable bundles Python and Tk. Each archive includes its SHA-256 checksum and license. These are unsigned test builds. Published release packages and their VirusTotal reports are listed separately under Releases.
+Download [FSA.exe for Windows x64](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases/latest/download/FSA.exe) and open it. Python and Tk are included. To verify the unsigned executable, run `Get-FileHash .\FSA.exe -Algorithm SHA256` in PowerShell and compare the result with the FSA.exe entry in **SHA256SUMS.txt** from the same release.
+
+[Source, Python packages and checksums](https://github.com/Mustafaiq1998x/Firmware-Security-Analyzer/releases/latest) · [User guide](docs/README.md) · [Randomized firmware results](docs/randomized/README.md)
 
 ## Run your first inspection
 

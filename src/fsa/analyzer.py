@@ -25,7 +25,7 @@ def _analyze_buffer(data, *, name: str, size: int, max_strings: int,
     versions = find_kernel_versions(strings)
     report = {
         "tool": "Firmware Security Analyzer",
-        "version": "0.1.2",
+        "version": "0.2.0",
         "input": {
             "name": name,
             "size_bytes": size,

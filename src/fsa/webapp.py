@@ -12,7 +12,7 @@ from .scan_worker import inspect_upload
 
 app = FastAPI(
     title="Firmware Security Analyzer",
-    version="0.1.2",
+    version="0.2.0",
     description="Local, read-only static firmware triage API. Findings require manual validation.",
 )
 API_MAX_UPLOAD_BYTES = 128 * 1024 * 1024
@@ -43,7 +43,7 @@ def index():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "tool": "FSA", "version": "0.1.2"}
+    return {"status": "ok", "tool": "FSA", "version": "0.2.0"}
 
 
 @app.post("/scan")
